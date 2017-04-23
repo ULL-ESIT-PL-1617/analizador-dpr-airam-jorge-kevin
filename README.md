@@ -50,30 +50,30 @@
         FUNCTION test (x){
          x = 3;
         }
-        
+
 4. Condicionales:
-       IF condicion THEN
-       sentencias . . .
-       [ELSE
-       sentencias . . .]
-       END
+        IF condicion THEN
+        sentencias . . .
+        [ELSE
+        sentencias . . .]
+        END
 5. Bucles:
-       LOOP (#1 ; #2) THEN
+        LOOP (#1 ; #2) THEN
          ...
-       END
-       #1 => Sentencia que se ejecuta cada vez que se itera sobre el bucle.
-       #2 => Condición que se debe cumplir para que continue el bucle.
+        END
+        #1 => Sentencia que se ejecuta cada vez que se itera sobre el bucle.
+        #2 => Condición que se debe cumplir para que continue el bucle.
    Por ejemplo:
-       i = 0
-       LOOP ( i = i + 1; i < 3) THEN
+        i = 0
+        LOOP ( i = i + 1; i < 3) THEN
          ...
-       END
+        END
 7. La asignación puede se puede realizar a cualquier tipo de expresión
    Dichas asignaciones se declaran de la siguiente forma:
-       CONST y = 5;
-       x = 3 * 2;
-       z = foo( 3 * 4);
-       h = 1 > 2;
+        CONST y = 5;
+        x = 3 * 2;
+        z = foo( 3 * 4);
+        h = 1 > 2;
 8. Las condiciones toman valor true o false.
    Por ejemplo:
        true
