@@ -100,6 +100,13 @@ String.prototype.tokens = function() {
   return result;
 };
 
+var constant_table = {
+    "true": 1,
+    "false": 0
+}
+
+var symbol_table = {}
+
 var parse = function(input) {
   var condition, expression, factor, lookahead, match, statement, arguments_, if_statement, statements, term, tokens, tree;
   tokens = input.tokens();
@@ -128,6 +135,23 @@ var parse = function(input) {
         results.push(assing());
         match(";");
       }
+    }
+    return results;
+  };
+
+  functions = function(){
+    var results = []
+    var sentence
+    match("FUNCTION");
+    if(lookahead && lookahead.type === "ID" && !(lookahead.value in symbol_table)){
+      symbol_table[lookahead.value] = "FUNCTION";
+      match("ID");
+      results.push(arguments_());
+      match("{");
+      sentence = sentences(["}"]);
+      results.push(sentence);
+      match("}");
+      match(";");
     }
     return results;
   };
@@ -171,11 +195,6 @@ var parse = function(input) {
     };
   };
 
-  var constant_table = {
-      "true": 1,
-      "false": 0
-  }
-  var symbol_table = {}
   assing = function() {
       var result, id;
       var is_const = false;
