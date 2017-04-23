@@ -134,7 +134,11 @@ var parse = function(input) {
   assing = function() {
       var result, id;
 
-      if (lookahead && lookahead2 && lookahead.type == "ID" && lookahead2.type == '=') {
+      if (lookahead && lookahead.type == "CONST") {
+          match("CONST");
+          id = lookahead.value;
+          
+      } else if (lookahead && lookahead2 && lookahead.type == "ID" && lookahead2.type == '=') {
           id = lookahead.value;
           if (!constant_table[id]) { // Si el ID no es una constante, se puede asignar
               match("ID");
