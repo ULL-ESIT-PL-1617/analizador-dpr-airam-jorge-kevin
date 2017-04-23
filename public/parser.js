@@ -100,13 +100,6 @@ String.prototype.tokens = function() {
   return result;
 };
 
-var constant_table = {
-    "true": 1,
-    "false": 0
-}
-
-var symbol_table = {}
-
 var parse = function(input) {
   var condition, expression, factor, lookahead, match, statement, arguments_, if_statement, statements, term, tokens, tree;
   tokens = input.tokens();
@@ -124,6 +117,14 @@ var parse = function(input) {
     }
   };
 
+  var constant_table = {
+      "true": 1,
+      "false": 0
+  }
+
+  var symbol_table = {}
+  var function_table = {}
+
   sentences = function(stop_conditions){
     var results = []
     while (lookahead && (!stop_conditions || (stop_conditions.indexOf(lookahead.type) == -1))) {
@@ -140,20 +141,40 @@ var parse = function(input) {
   };
 
   functions = function(){
-    var results = []
-    var sentence
+    var code, parameters, id;
+    var function_symbols = {};
     match("FUNCTION");
-    if(lookahead && lookahead.type === "ID" && !(lookahead.value in symbol_table)){
-      symbol_table[lookahead.value] = "FUNCTION";
-      match("ID");
-      results.push(arguments_());
-      match("{");
-      sentence = sentences(["}"]);
-      results.push(sentence);
-      match("}");
-      match(";");
+
+    id = lookahead.value;
+    match("ID");
+
+    if (!!function_table[id])
+     throw "Syntax error. Redeclaring function '" + id + "'";
+
+    match("(");
+    while (lookahead && lookahead.type == "ID") {
+        par_id = lookahead.value;
+        if (function_symbols[par_id] == "parameter")
+         throw "Syntax error. Redeclaring parameter '" + par_id + "' in function '" + id + "'";
+        function_symbols[par_id] = "parameter";
+        match("ID");
+
+        if (lookahead.type == ",")
+            match(",");
     }
-    return results;
+    match(")")
+   function_table[id] = {
+       "parameters": function_symbols
+   }
+    match("{")
+    code = sentences(["}"]);
+    match("}");
+    return {
+        type: "FUNCTION",
+        id: id,
+        parameters: function_symbols,
+        code: code
+    }
   };
 
   statements = function() {
@@ -291,10 +312,16 @@ var parse = function(input) {
 
     if (lookahead && lookahead2 && lookahead.type === "ID" && lookahead2.type === '(') {
         id = lookahead.value;
-        //if (symbol_table[id] != "function")
-        //  throw "Syntax Error. Unkown function '" + id + "'";
+        if (!function_table[id])
+          throw "Syntax Error. Unkown function '" + id + "'";
         match("ID");
         parameters = arguments_();
+
+        size1 = parameters.values.length
+        size2 = Object.keys(function_table[id]["parameters"]).length
+        if (size1 != size2)
+          throw "Syntax Error. Invalid number of arguments for function '" + id + "'. Expected " + size2 + " got " + size1;
+
         result = {
               type: "CALL",
               id: id,
@@ -378,5 +405,5 @@ var parse = function(input) {
   if (lookahead != null) {
     throw "Syntax Error parsing statements. " + "Expected 'end of input' and found '" + input.substr(lookahead.from) + "'";
   }
-  return {result: tree, symbolTable: symbol_table, constantTable: constant_table};
+  return {result: tree, symbolTable: symbol_table, functionTable: function_table, constantTable: constant_table};
 };

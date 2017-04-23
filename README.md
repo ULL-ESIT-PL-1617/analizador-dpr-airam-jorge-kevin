@@ -18,11 +18,12 @@
 
 ### Descripción del Lenguaje
 
+
 1.  Σ = { ADDOP, MULOP, '(', ')', NUM, ',', ID, '=' },
 2.  V = {  comma, expression, term, factor }
 3.  Productions:
     1.  sentences       → ((assing ';') | function | statement)*
-    2.  function        → FUNCTION ID arguments '{' sentences '}'
+    2.  function        → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
     3.  statements      → if_statement | loop_statement
 
     4. if_statement     → if condition then sentences (else sentences)? end
@@ -34,7 +35,7 @@
     9.  expression      → term ( ADDOP term)* | ID arguments
     10. term            → factor (MULOP factor)*
     11. factor          → arguments | NUM | ID
-    12. arguments       →  '(' comma ')'
+    12. arguments       → '(' comma ')'
 
 ### Hitos
 
