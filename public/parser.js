@@ -207,7 +207,10 @@ var parse = function(input) {
     var result;
     result = null;
     if (lookahead.type === "NUM") {
-      result = lookahead.value;
+      result = {
+        type: "NUM",
+        value: lookahead.value
+      };
       match("NUM");
     } else if (lookahead.type === "(") {
       match("(");
@@ -215,10 +218,13 @@ var parse = function(input) {
       match(")");
     } else if (lookahead.type === "ID") {
         var key = lookahead.value;
-        // Si no existe en la tabla de símbolos, debe de ser una constante
-        result = !symbol_table[key] ? constant_table[key] : symbol_table[key];
+        // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
         if (!symbol_table[key] && !constant_table[key])
           throw "Syntax Error. Unkown identifier '" + key + "'";
+        result = {
+          type: "ID",
+          value: lookahead.value
+        };
         match("ID");
     } else {
       throw "Syntax Error. Expected number or identifier or '(' but found " + (lookahead ? lookahead.value : "end of input") + " near '" + input.substr(lookahead.from) + "'";
