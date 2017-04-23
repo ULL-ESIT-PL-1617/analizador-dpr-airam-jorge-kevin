@@ -18,7 +18,6 @@
 
 ### Descripción del Lenguaje
 
-
 1.  Σ = { ADDOP, MULOP, '(', ')', NUM, ',', ID, '=' },
 2.  V = {  comma, expression, term, factor }
 3.  Productions:
@@ -39,57 +38,54 @@
 
 ### Descripción de uso del Lenguaje
 
-    1. Las sentencias pueden ser asignaciones, funciones o declaraciones.
-    2. Las funciones se declaran de la siguiente forma:
-           FUNCTION ID (ID, ID, ...){
-             sentencias ...
-           }
-       Por ejemplo:
-           FUNCTION test (x){
-             x = 3;
-           }
-    3. Las declaraciones pueden ser condicionales o bucles.
-    4. Los condicionales se declaran de la siguiente forma:
-           IF condicion THEN
-           sentencias . . .
-           [ELSE
-           sentencias . . .]
-           END
-    5. Los bucles se pueden declarar de la siguiente forma:
-           LOOP ( i=0; i < 3) THEN
-             i = i + 1;
-           END
-    6. La coma son una o más asignaciones separadas por comas.
-    7. La asignación puede ser una asignación a una variable que puede ser constante o una condición.
-       Dichas asignaciones se declaran de la siguiente forma:
-           x = 3;
-           CONST y = 5;
-    8. Las condiciones son expresiones que se pueden comparar con otra expresión.
-       Por ejemplo:
-           true
-           i < 5
-    9. Las expresiones son términos seguidos de 0 o más repeticiones de ADDOP y términos.
-       Por ejemplo:
-          5 + 7
-          9 - 7
-          7
-       Ó también pueden ser declaraciones a funciones.
-       Por ejemplo:
-          funcionTest(5);
-          funcionTest();
-    10. Los términos son factores que pueden a su vez ser multiplicados o divididos por otro factor
-        una o más veces.
-        Por ejemplo:
-            7 * 9
-            9 / 5
-    11. Los factores son argumentos, números o identificadores.
-        Por ejemplo:
-            (1, 2)
-            7
-            a
-    12. Los argumentos son comas entre paréntesis.
-        Por ejemplo:
-          (x, y)
+1. Las sentencias pueden ser asignaciones, funciones o declaraciones.
+2. Las funciones se declaran de la siguiente forma. Pueden ser declaradas en cualquier momento y accedidas globalmente:
+
+       FUNCTION ID (ID, ID, ...) {
+         sentencias ...
+       }
+
+   Por ejemplo:
+       FUNCTION test (x){
+         x = 3;
+       }
+4. Condicionales:
+       IF condicion THEN
+       sentencias . . .
+       [ELSE
+       sentencias . . .]
+       END
+5. Bucles:
+       LOOP (#1 ; #2) THEN
+         ...
+       END
+       #1 => Sentencia que se ejecuta cada vez que se itera sobre el bucle.
+       #2 => Condición que se debe cumplir para que continue el bucle.
+   Por ejemplo:
+       i = 0
+       LOOP ( i = i + 1; i < 3) THEN
+         ...
+       END
+7. La asignación puede se puede realizar a cualquier tipo de expresión
+   Dichas asignaciones se declaran de la siguiente forma:
+       CONST y = 5;
+       x = 3 * 2;
+       z = foo( 3 * 4);
+       h = 1 > 2;
+8. Las condiciones toman valor true o false.
+   Por ejemplo:
+       true
+       i < 5
+9. Las expresiones son términos que representan operaciones básicas.
+   Por ejemplo:
+      5 + 7
+      9 - 7
+      7
+   Ó también pueden ser llamdas a funciones.
+   Por ejemplo:
+        funcionTest(5);
+        funcionTest();
+        4 * funcionTest(7 * 2);
 
 ### Recursos
 
