@@ -16,16 +16,36 @@
 1. [Eloquent JS: The Secret Life of Objects. Lying Out a Table](http://eloquentjavascript.net/06_object.html##h_36C2FHHi44)
 2. [Repo original de esta práctica](https://github.com/ULL-ESIT-DSI-1617/oop-eloquentjs-example)
 
+### Descripción del Lenguaje
+
+1.  Σ = { ADDOP, MULOP, '(', ')', NUM, ',', ID, '=' },
+2.  V = {  comma, expression, term, factor }
+3.  Productions:
+    1.  sentences       → ((assing ';') | function | statement)*
+    2.  function        → ID arguments '{' sentences '}'
+    3.  statements      → if_statement | loop_statement
+
+    4. if_statement     → if condition then sentences (else sentences)? end
+    5. loop_statement   → loop '(' assing ';' condition ')' then sentences end
+
+    6.  comma           → assing (',' assing)*
+    7.  assing          → const? ID '=' assing | condition
+    8.  condition       → expression (COMPARISON expression)?
+    9.  expression      → term ( ADDOP term)* | call ID arguments
+    10. term            → factor (MULOP factor)*
+    11. factor          → arguments | NUM | ID
+    12. arguments       →  '(' comma ')'
+
 ### Hitos
 
-1. Use el repo de GitHub dado por la asignación de esta tarea. 
+1. Use el repo de GitHub dado por la asignación de esta tarea.
 2. Separe las clases `UnderlinedCell`, `TexCell`, etc. en distintos ficheros exportando los objetos adecuados
 3. Reescriba las clases usando ECMA6
 4. Añada pruebas para cada una de las clases `UnderlinedCell`, `TexCell`, etc
 5. Añada integración continua usando Travis
 6. Añada a su `README.md` un badge Travis como este:
 [![Build Status](https://travis-ci.org/crguezl/mocha-chai-sinon--example.svg?branch=travis)](https://travis-ci.org/crguezl/mocha-chai-sinon--example)
-indicando el estado de las pruebas en Travis y enlazando a las mismas. 
+indicando el estado de las pruebas en Travis y enlazando a las mismas.
 7. Entrege los enlaces al repo en GitHub y a Travis
 
 
