@@ -37,19 +37,19 @@
     11. factor          → arguments | NUM | ID
     12. arguments       → '(' comma ')'
 
-### Hitos
+### Descripción de uso del Lenguaje
 
-1. Use el repo de GitHub dado por la asignación de esta tarea.
-2. Separe las clases `UnderlinedCell`, `TexCell`, etc. en distintos ficheros exportando los objetos adecuados
-3. Reescriba las clases usando ECMA6
-4. Añada pruebas para cada una de las clases `UnderlinedCell`, `TexCell`, etc
-5. Añada integración continua usando Travis
-6. Añada a su `README.md` un badge Travis como este:
-[![Build Status](https://travis-ci.org/crguezl/mocha-chai-sinon--example.svg?branch=travis)](https://travis-ci.org/crguezl/mocha-chai-sinon--example)
-indicando el estado de las pruebas en Travis y enlazando a las mismas.
-7. Entrege los enlaces al repo en GitHub y a Travis
-
-
+    1. Las sentencias pueden ser asignaciones, funciones o declaraciones.
+    2. Las funciones se declaran de la siguiente forma:
+           FUNCTION ID (ID, ID, ...){
+             sentencias ...
+           }
+       Por ejemplo:
+           FUNCTION test (x){
+             x = 3;
+           }
+    3. Las declaraciones
+    
 ### Recursos
 
 * [Apuntes: Programación Orientada a Objetos](https://casianorodriguezleon.gitbooks.io/ull-esit-1617/content/apuntes/oop/)
