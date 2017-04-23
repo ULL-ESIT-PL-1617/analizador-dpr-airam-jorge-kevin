@@ -17,7 +17,9 @@ RegExp.prototype.bexec = function(str) {
 
 RESERVED_WORD = {
     "CONST": "CONST",
-    "FUNCTION": "FUNCTION"
+    "FUNCTION": "FUNCTION",
+    "IF": "IF",
+    "LOOP": "LOOP"
 };
 
 String.prototype.tokens = function() {
@@ -126,6 +128,13 @@ var parse = function(input) {
     }
     return results;
   };
+
+  statements = function() {
+    if (lookahead && lookahead.type == "IF")
+      return if_statement();
+    else if (lookahead && lookahead.type == "LOOP")
+      return loop_statement();
+  }
 
   comma = function() {
     var results = []
