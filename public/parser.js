@@ -153,7 +153,7 @@ var parse = function(input) {
     result = expression();
 
     if (lookahead && lookahead.type === "COMPARISON") {
-      type = lookahead.value;
+      type = lookahead.value; <
       match("COMPARISON");
       right = expression();
       result = {
@@ -174,7 +174,7 @@ var parse = function(input) {
       match("ADDOP");
       right = term();
       result = {
-            type: lookahead.value,
+            type: type,
             left: result,
             right: right
       };
@@ -190,12 +190,11 @@ var parse = function(input) {
       type = lookahead.value;
       match("MULTOP");
       right = term();
-      if(type === "*"){
-        result *= right;
-      }
-      else if(type === "/"){
-        result /= right;
-      }
+      result = {
+            type: type,
+            left: result,
+            right: right
+      };
     }
     return result;
   };
