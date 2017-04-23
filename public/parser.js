@@ -43,6 +43,7 @@ String.prototype.tokens = function() {
     ADDOP:                /[+-]/g,
     MULTOP:               /[*\/]/g
   };
+
   make = function(type, value) {
     return {
       type: type,
@@ -51,30 +52,30 @@ String.prototype.tokens = function() {
       to: i
     };
   };
+
   getTok = function() {
     var str;
     str = m[0];
     i += str.length;
     return str;
   };
-  if (!this) {
-    return;
-  }
+
+  if (!this) return;
+
   while (i < this.length) {
+
     for (key in tokens) {
       value = tokens[key];
       value.lastIndex = i;
     }
+
     from = i;
+
     if (m = tokens.WHITES.bexec(this) || (m = tokens.ONELINECOMMENT.bexec(this)) || (m = tokens.MULTIPLELINECOMMENT.bexec(this))) {
       getTok();
     } else if (m = tokens.ID.bexec(this)) {
       rw = RESERVED_WORD[m[0]];
-      if (rw) {
-        result.push(make(rw, getTok()));
-      } else {
-        result.push(make("ID", getTok()));
-      }
+      result.push(rw ? make(rw, getTok()) : make("ID", getTok()));
     } else if (m = tokens.NUM.bexec(this)) {
       n = +getTok();
       if (isFinite(n)) {
@@ -102,36 +103,43 @@ String.prototype.tokens = function() {
 var parse = function(input) {
   var condition, expression, factor, lookahead, match, statement, arguments_, if_statement, statements, term, tokens, tree;
   tokens = input.tokens();
-  lookahead = tokens.shift();
-  lookahead2 = (tokens.length > 0) ? tokens[0] : null;
+  lookahead = tokens.shift(); // Contiene información sobre el siguiente valor
+  lookahead2 = (tokens.length > 0) ? tokens[0] : null; // Contiene información sobre el segundo siguiente valor
+
+  /** Hace un match con el siguiente valor **/
   match = function(t) {
     if (lookahead && lookahead.type === t) {
-      lookahead = tokens.shift();
-      lookahead2 = (tokens.length > 0) ? tokens[0] : null;
-      if (!lookahead) {
-        lookahead = lookahead2 = null;
-      }
+      lookahead  = tokens.shift();
+      lookahead2 = (tokens.length > 0 && lookahead) ? tokens[0] : null;
     } else {
-      found = lookahead ? lookahead.value : "End of input";
-      throw ("Syntax Error. Expected " + t + " found '") + found + (lookahead ? ("' near '" + input.substr(lookahead.from) + "'") : "'");
+      if (lookahead)
+        throw "Syntax Error. Expected " + t + " found '" + lookahead.value + "' near '" + input.substr(lookahead.from) + "'";
+      else
+        throw "Syntax Error. Expected " + t + " found 'End of input'";
     }
   };
 
+  /** Tabla con los valores constantes. NO las variables constantes **/
   var constant_table = {
       "true": 1,
       "false": 0
   }
 
-  var symbol_table = {}
-  var function_table = {}
-  var scope_stack = [];
+  var symbol_table    = {}; // Tabla de símbolos, contiene los símbolos de las variables globales
+  var function_table  = {}; // Contiene los ids de las funciones con sus tablas de símbolos locales
+  var scope_stack     = []; // Indica el scope en el que se encuentra el analizador. Permite diferenciar las variables locales a las funciones de las globales
 
-  sentences = function(stop_conditions){
+  // sentences → ((assing ';') | function | statement)*
+  // sentences devuelve un array con un conjunto de sentencias. stop_conditions contiene
+  // en un array los valores hasta los que sentence puede avanzar.
+  // Por ejemplo, stop_conditions = ["END", "ELSE"], provocará que se dejen de analizar sentencias
+  // justo en el momento en el que se encuentre la palabra clave "END" o "ELSE"
+  sentences = function(stop_conditions) {
     var results = []
     while (lookahead && (!stop_conditions || (stop_conditions.indexOf(lookahead.type) == -1))) {
-      if(lookahead && lookahead.type == "FUNCTION"){
+      if (lookahead && lookahead.type == "FUNCTION") {
         results.push(functions());
-    } else if (lookahead && (lookahead.type == "LOOP" || lookahead.type == "IF")) {
+      } else if (lookahead && (lookahead.type == "LOOP" || lookahead.type == "IF")) {
         results.push(statements());
       } else if (lookahead){
         results.push(assing());
@@ -141,45 +149,56 @@ var parse = function(input) {
     return results;
   };
 
-  functions = function(){
+  // functions → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
+  functions = function() {
     var code, parameters, id;
-    var function_symbols = {};
+    var function_symbols = {}; // Tabla de símbolos de la función
     match("FUNCTION");
 
+    // Nombre de la función
     id = lookahead.value;
     match("ID");
 
+    // Evita declarar una función que ya existe
     if (!!function_table[id])
-     throw "Syntax error. Redeclaring function '" + id + "'";
+      throw "Syntax error. Redeclaring function '" + id + "'";
 
+    // Parámetros de la función
     match("(");
     while (lookahead && lookahead.type == "ID") {
-        par_id = lookahead.value;
-        if (function_symbols[par_id] == "volatile")
-          throw "Syntax error. Redeclaring parameter '" + par_id + "' in function '" + id + "'";
-        function_symbols[par_id] = "volatile";
-        match("ID");
+      param_id = lookahead.value;
+      // Evita declarar un parámetro que ya existe
+      if (function_symbols[param_id] == "volatile")
+        throw "Syntax error. Redeclaring parameter '" + param_id + "' in function '" + id + "'";
 
-        if (lookahead.type == ",")
-            match(",");
+      function_symbols[param_id] = "volatile";
+      match("ID");
+
+      // Si hay otro parámetro, debe hacer un match con la coma
+      if (lookahead2 && lookahead2.type == "ID")
+        match(",");
     }
-    match(")")
-   function_table[id] = {
-       "local_symbol_table": function_symbols
-   }
+    match(")");
+    function_table[id] = {
+      "local_symbol_table": function_symbols
+    }
+    // Indica que ahora estamos en el scope de esta función
     scope_stack.push(id);
-    match("{")
+    match("{");
     code = sentences(["}"]);
     match("}");
+    // Abandona el scope de la función
     scope_stack.pop();
     return {
-        type: "FUNCTION",
-        id: id,
-        parameters: function_symbols,
-        code: code
+      type: "FUNCTION",
+      id: id,
+      parameters: function_symbols,
+      code: code
     }
   };
 
+  // statements → if_statement | loop_statement
+  // Permite más modularidad, para dividir cada statement en distintas funciones
   statements = function() {
     if (lookahead && lookahead.type == "IF")
       return if_statement();
@@ -187,15 +206,16 @@ var parse = function(input) {
       return loop_statement();
   }
 
+  // loop_statement → loop '(' assing ';' condition ')' THEN sentences END
   loop_statement = function () {
       match("LOOP");
       match("(");
-      repeat = assing();
+      repeat = assing(); // Código que se ejecutará cada vez
       match(";");
-      loop_condition = condition();
+      loop_condition = condition(); // Condición de ejecución del bucle
       match(")");
       match("THEN");
-      code = sentences(["END"]);
+      code = sentences(["END"]); // Código que ejecuta el bucle
       match("END");
       return {
           type: "LOOP",
@@ -205,20 +225,21 @@ var parse = function(input) {
       }
   }
 
+  // comma → assing (',' assing)*
   comma = function() {
-    var results = []
+    var results = [];
     results.push(assing());
     while (lookahead && lookahead.type === ",") {
       match(",");
       results.push(assing());
     }
-
     return {
         type: "COMMA",
         values: results
     };
   };
 
+  // assing → CONST? ID '=' assing | condition
   assing = function() {
       var result, id;
       var is_const = false;

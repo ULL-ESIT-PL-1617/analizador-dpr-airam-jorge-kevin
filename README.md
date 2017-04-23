@@ -11,13 +11,13 @@
         2.  functions       → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
         3.  statements      → if_statement | loop_statement
 
-        4. if_statement     → if condition then sentences (else sentences)? end
-        5. loop_statement   → loop '(' assing ';' condition ')' then sentences end
+        4. if_statement     → if condition THEN sentences (ELSE sentences)? END
+        5. loop_statement   → loop '(' assing ';' condition ')' THEN sentences END
 
         6.  comma           → assing (',' assing)*
-        7.  assing          → const? ID '=' assing | condition
+        7.  assing          → CONST? ID '=' assing | condition
         8.  condition       → expression (COMPARISON expression)?
-        9.  expression      → term ( ADDOP term)* | ID arguments
+        9.  expression      → term (ADDOP term)* | ID arguments
         10. term            → factor (MULOP factor)*
         11. factor          → arguments | NUM | ID
         12. arguments       → '(' comma ')'
