@@ -9,12 +9,10 @@ RegExp.prototype.bexec = function(str) {
   var i, m;
   i = this.lastIndex;
   m = this.exec(str);
-  if (m && m.index === i) {
-    return m;
-  }
-  return null;
+  return (m && m.index === i) ? m : null
 };
 
+/** Conjunto de palabras reservadas del lenguaje **/
 RESERVED_WORD = {
     "CONST": "CONST",
     "FUNCTION": "FUNCTION",
@@ -25,6 +23,7 @@ RESERVED_WORD = {
     "ELSE": "ELSE"
 };
 
+/** Tokeniza la cadena **/
 String.prototype.tokens = function() {
   var from, getTok, i, key, m, make, n, result, rw, tokens, value;
   from = void 0;
@@ -33,16 +32,16 @@ String.prototype.tokens = function() {
   m = void 0;
   result = [];
   tokens = {
-    WHITES: /\s+/g,
-    ID: /[a-zA-Z_]\w*/g,
-    NUM: /\b\d+(\.\d*)?([eE][+-]?\d+)?\b/g,
-    STRING: /('(\\.|[^'])*'|"(\\.|[^"])*")/g,
-    ONELINECOMMENT: /\/\/.*/g,
-    MULTIPLELINECOMMENT: /\/[*](.|\n)*?[*]\//g,
-    COMPARISONOPERATOR: /[<>=!]=|[<>]/g,
-    ONECHAROPERATORS: /([=()&|;:,{}[\]])/g,
-    ADDOP: /[+-]/g,
-    MULTOP: /[*\/]/g
+    WHITES:               /\s+/g,
+    ID:                   /[a-zA-Z_]\w*/g,
+    NUM:                  /\b\d+(\.\d*)?([eE][+-]?\d+)?\b/g,
+    STRING:               /('(\\.|[^'])*'|"(\\.|[^"])*")/g,
+    ONELINECOMMENT:       /\/\/.*/g,
+    MULTIPLELINECOMMENT:  /\/[*](.|\n)*?[*]\//g,
+    COMPARISONOPERATOR:   /[<>=!]=|[<>]/g,
+    ONECHAROPERATORS:     /([=()&|;:,{}[\]])/g,
+    ADDOP:                /[+-]/g,
+    MULTOP:               /[*\/]/g
   };
   make = function(type, value) {
     return {
@@ -369,7 +368,7 @@ var parse = function(input) {
     } else if (lookahead.type === "ID") {
         var key = lookahead.value;
         // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
-        if (!symbolTableForScope()[key] && !constant_table[key])
+        if (!symbolTableForScope()[key] && constant_table[key] == undefined)
           throw "Syntax Error. Unkown identifier '" + key + "'";
 
         if (key.toUpperCase() in RESERVED_WORD)
