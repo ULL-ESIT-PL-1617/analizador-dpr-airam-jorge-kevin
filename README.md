@@ -18,23 +18,23 @@
 
 ### Descripción del Lenguaje
 
-1.  Σ = { ADDOP, MULOP, '(', ')', NUM, ',', ID, '=' },
-2.  V = {  comma, expression, term, factor }
-3.  Productions:
-    1.  sentences       → ((assing ';') | function | statement)*
-    2.  function        → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
-    3.  statements      → if_statement | loop_statement
+    1.  Σ = { ADDOP, MULOP, '(', ')', NUM, ',', ID, '=' },
+    2.  V = {  comma, expression, term, factor }
+    3.  Productions:
+        1.  sentences       → ((assing ';') | function | statement)*
+        2.  function        → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
+        3.  statements      → if_statement | loop_statement
 
-    4. if_statement     → if condition then sentences (else sentences)? end
-    5. loop_statement   → loop '(' assing ';' condition ')' then sentences end
+        4. if_statement     → if condition then sentences (else sentences)? end
+        5. loop_statement   → loop '(' assing ';' condition ')' then sentences end
 
-    6.  comma           → assing (',' assing)*
-    7.  assing          → const? ID '=' assing | condition
-    8.  condition       → expression (COMPARISON expression)?
-    9.  expression      → term ( ADDOP term)* | ID arguments
-    10. term            → factor (MULOP factor)*
-    11. factor          → arguments | NUM | ID
-    12. arguments       → '(' comma ')'
+        6.  comma           → assing (',' assing)*
+        7.  assing          → const? ID '=' assing | condition
+        8.  condition       → expression (COMPARISON expression)?
+        9.  expression      → term ( ADDOP term)* | ID arguments
+        10. term            → factor (MULOP factor)*
+        11. factor          → arguments | NUM | ID
+        12. arguments       → '(' comma ')'
 
 ### Descripción de uso del Lenguaje
 
@@ -97,7 +97,7 @@
 
    Ó también pueden ser llamdas a funciones.
    Por ejemplo:
-   
+
         funcionTest(5);
         funcionTest();
         4 * funcionTest(7 * 2);
