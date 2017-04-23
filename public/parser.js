@@ -100,7 +100,7 @@ String.prototype.tokens = function() {
 };
 
 var parse = function(input) {
-  var condition, expression, factor, lookahead, match, statement, arguments_, statements, term, tokens, tree;
+  var condition, expression, factor, lookahead, match, statement, arguments_, if_statement, statements, term, tokens, tree;
   tokens = input.tokens();
   lookahead = tokens.shift();
   lookahead2 = (tokens.length > 0) ? tokens[0] : null;
@@ -214,6 +214,34 @@ var parse = function(input) {
 
       return result;
   };
+
+  if_statement = function() {
+    var result, if_condition, if_sentence, else_sentece;
+    if(lookahead && lookahead.type === "IF") {
+      match("IF");
+      if_condition = condition();
+      match("THEN");
+      if_sentence = sentences();
+      if(lookahead && lookahead.type === "ELSE") {
+        match("ELSE");
+        else_sentece = sentences();
+        match("THEN");
+        return {
+          type: "IF",
+          if_condition: if_condition,
+          if_sentence: if_sentence,
+          else_sentece: else_sentece;
+        }
+      }
+      match("THEN");
+      return {
+        type: "IF",
+        if_condition: if_condition,
+        if_sentence: if_sentence
+      }
+    }
+  };
+
   condition = function() {
     var result, right, type;
 
