@@ -148,26 +148,22 @@ var parse = function(input) {
       return result;
   };
   condition = function() {
-    var left, right, type, result;
+    var result, right, type;
 
-    left = expression();
+    result = expression();
 
     if (lookahead && lookahead.type === "COMPARISON") {
       type = lookahead.value;
       match("COMPARISON");
       right = expression();
-      switch (type) {
-          case ">" : result = (left >  right); break;
-          case "<" : result = (left <  right); break;
-          case ">=": result = (left >= right); break;
-          case "<=": result = (left <= right); break;
-          case "==": result = (left == right); break;
-          case "!=": result = (left != right); break;
-      }
-      left = result ? 1 : 0;
+      result = {
+            type: type,
+            left: result,
+            right: right
+      };
     }
 
-    return left;
+    return result;
   }
   expression = function() {
     var result, right, type;
