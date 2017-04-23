@@ -143,7 +143,7 @@ var parse = function(input) {
               result = {
                   type: "=",
                   left: id,
-                  right: right;
+                  right: right
               }
               symbol_table.push(id)
           } else {
@@ -161,7 +161,7 @@ var parse = function(input) {
     result = expression();
 
     if (lookahead && lookahead.type === "COMPARISON") {
-      type = lookahead.value; <
+      type = lookahead.value;
       match("COMPARISON");
       right = expression();
       result = {
@@ -222,7 +222,7 @@ var parse = function(input) {
     } else if (lookahead.type === "ID") {
         var key = lookahead.value;
         // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
-        if (!symbol_table[key] && !constant_table[key])
+        if ((symbol_table.indexOf(key) < -1) && (constant_table.indexOf(key) < -1))
           throw "Syntax Error. Unkown identifier '" + key + "'";
         result = {
           type: "ID",
@@ -240,5 +240,5 @@ var parse = function(input) {
   if (lookahead != null) {
     throw "Syntax Error parsing statements. " + "Expected 'end of input' and found '" + input.substr(lookahead.from) + "'";
   }
-  return {result: tree, results: results, symbolTable: symbol_table, constantTable: constant_table};
+  return {result: tree, symbolTable: symbol_table, constantTable: constant_table};
 };
