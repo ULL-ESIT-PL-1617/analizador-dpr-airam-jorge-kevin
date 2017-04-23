@@ -21,7 +21,8 @@ RESERVED_WORD = {
     "IF": "IF",
     "LOOP": "LOOP",
     "THEN": "THEN",
-    "END": "END"
+    "END": "END",
+    "ELSE": "ELSE"
 };
 
 String.prototype.tokens = function() {
@@ -116,9 +117,9 @@ var parse = function(input) {
     }
   };
 
-  sentences = function(){
+  sentences = function(stop_conditions){
     var results = []
-    while (lookahead && lookahead.type != "END") {
+    while (lookahead && (!stop_conditions || (stop_conditions.indexOf(lookahead.type) == -1))) {
       if(lookahead && lookahead.type == "FUNCTION"){
         results.push(functions());
       } else if (lookahead && (lookahead.type in RESERVED_WORD)) {
@@ -146,7 +147,7 @@ var parse = function(input) {
       loop_condition = condition();
       match(")");
       match("THEN");
-      code = sentences();
+      code = sentences(["END"]);
       match("END");
       return {
           type: "LOOP",
@@ -216,24 +217,30 @@ var parse = function(input) {
   };
 
   if_statement = function() {
+      console.log("G")
     var result, if_condition, if_sentence, else_sentece;
     if(lookahead && lookahead.type === "IF") {
       match("IF");
       if_condition = condition();
       match("THEN");
-      if_sentence = sentences();
+      if_sentence = sentences(["ELSE", "END"]);
+      console.log("A");
       if(lookahead && lookahead.type === "ELSE") {
+      console.log("B");
         match("ELSE");
-        else_sentece = sentences();
-        match("THEN");
+        else_sentece = sentences(["END"]);
+        console.log("C");
+        match("END");
+        console.log("D");
         return {
           type: "IF",
           if_condition: if_condition,
           if_sentence: if_sentence,
-          else_sentece: else_sentece;
+          else_sentece: else_sentece
         }
       }
-      match("THEN");
+      match("END");
+      console.log("E");
       return {
         type: "IF",
         if_condition: if_condition,
@@ -347,7 +354,7 @@ var parse = function(input) {
     return(result);
   };
 
-  tree = sentences(input);
+  tree = sentences();
 
   if (lookahead != null) {
     throw "Syntax Error parsing statements. " + "Expected 'end of input' and found '" + input.substr(lookahead.from) + "'";
