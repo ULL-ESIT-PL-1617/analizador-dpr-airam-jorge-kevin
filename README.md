@@ -46,9 +46,11 @@
        }
 
    Por ejemplo:
-       FUNCTION test (x){
+
+        FUNCTION test (x){
          x = 3;
-       }
+        }
+        
 4. Condicionales:
        IF condicion THEN
        sentencias . . .
