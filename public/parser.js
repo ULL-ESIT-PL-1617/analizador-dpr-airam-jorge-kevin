@@ -125,13 +125,14 @@ var parse = function(input) {
 
   var symbol_table = {}
   var function_table = {}
+  var scope_stack = [];
 
   sentences = function(stop_conditions){
     var results = []
     while (lookahead && (!stop_conditions || (stop_conditions.indexOf(lookahead.type) == -1))) {
       if(lookahead && lookahead.type == "FUNCTION"){
         results.push(functions());
-      } else if (lookahead && (lookahead.type in RESERVED_WORD)) {
+    } else if (lookahead && (lookahead.type == "LOOP" || lookahead.type == "IF")) {
         results.push(statements());
       } else if (lookahead){
         results.push(assing());
@@ -155,9 +156,9 @@ var parse = function(input) {
     match("(");
     while (lookahead && lookahead.type == "ID") {
         par_id = lookahead.value;
-        if (function_symbols[par_id] == "parameter")
-         throw "Syntax error. Redeclaring parameter '" + par_id + "' in function '" + id + "'";
-        function_symbols[par_id] = "parameter";
+        if (function_symbols[par_id] == "volatile")
+          throw "Syntax error. Redeclaring parameter '" + par_id + "' in function '" + id + "'";
+        function_symbols[par_id] = "volatile";
         match("ID");
 
         if (lookahead.type == ",")
@@ -165,11 +166,13 @@ var parse = function(input) {
     }
     match(")")
    function_table[id] = {
-       "parameters": function_symbols
+       "local_symbol_table": function_symbols
    }
+    scope_stack.push(id);
     match("{")
     code = sentences(["}"]);
     match("}");
+    scope_stack.pop();
     return {
         type: "FUNCTION",
         id: id,
@@ -230,11 +233,11 @@ var parse = function(input) {
           id = lookahead.value;
 
           // Si la variable es constante y ya existe en la tabla de simbolos y es volatil, error
-          if (!is_const && symbol_table[id] == "const")
+          if (!is_const && symbolTableForScope()[id] == "const")
              throw "Syntax error. Cant make existing id '" + id + "' volatile";
 
           // Si la variable es volatil y ya existe en la tabla de simbolos y es constante, error
-          if (is_const && symbol_table[id] == "volatile")
+          if (is_const && symbolTableForScope()[id] == "volatile")
              throw "Syntax error. Cant make existing id '" + id + "' constant";
 
           if (!constant_table[id]) { // Si el ID no es una constante definida, se puede asignar
@@ -246,7 +249,7 @@ var parse = function(input) {
                   left: id,
                   right: right
               }
-              symbol_table[id] = is_const ? "const" : "volatile";
+              symbolTableForScope()[id] = is_const ? "const" : "volatile";
           } else {
               throw "Syntax error. Cant assing value to ID '" + id + "'";
           }
@@ -258,21 +261,16 @@ var parse = function(input) {
   };
 
   if_statement = function() {
-      console.log("G")
     var result, if_condition, if_sentence, else_sentece;
     if(lookahead && lookahead.type === "IF") {
       match("IF");
       if_condition = condition();
       match("THEN");
       if_sentence = sentences(["ELSE", "END"]);
-      console.log("A");
       if(lookahead && lookahead.type === "ELSE") {
-      console.log("B");
         match("ELSE");
         else_sentece = sentences(["END"]);
-        console.log("C");
         match("END");
-        console.log("D");
         return {
           type: "IF",
           if_condition: if_condition,
@@ -281,7 +279,6 @@ var parse = function(input) {
         }
       }
       match("END");
-      console.log("E");
       return {
         type: "IF",
         if_condition: if_condition,
@@ -319,7 +316,7 @@ var parse = function(input) {
         parameters = arguments_();
 
         size1 = parameters.values.length
-        size2 = Object.keys(function_table[id]["parameters"]).length
+        size2 = Object.keys(function_table[id]["local_symbol_table"]).length
         if (size1 != size2)
           throw "Syntax Error. Invalid number of arguments for function '" + id + "'. Expected " + size2 + " got " + size1;
 
@@ -372,7 +369,7 @@ var parse = function(input) {
     } else if (lookahead.type === "ID") {
         var key = lookahead.value;
         // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
-        if (!symbol_table[key] && !constant_table[key])
+        if (!symbolTableForScope()[key] && !constant_table[key])
           throw "Syntax Error. Unkown identifier '" + key + "'";
 
         if (key.toUpperCase() in RESERVED_WORD)
@@ -400,6 +397,15 @@ var parse = function(input) {
     }
     return(result);
   };
+
+  symbolTableForScope = function() {
+      if (scope_stack.length < 1)
+        return symbol_table;
+      else {
+          last = scope_stack.length - 1;
+          return function_table[scope_stack[last]].local_symbol_table;
+      }
+  }
 
   tree = sentences();
 
