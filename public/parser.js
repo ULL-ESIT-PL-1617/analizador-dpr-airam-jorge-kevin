@@ -106,13 +106,14 @@ var parse = function(input) {
   lookahead = tokens.shift();
   lookahead2 = (tokens.length > 0) ? tokens[0] : null;
   match = function(t) {
-    if (lookahead.type === t) {
+    if (lookahead && lookahead.type === t) {
       lookahead = tokens.shift();
       lookahead2 = (tokens.length > 0) ? tokens[0] : null;
-      if (typeof lookahead === "undefined") {
+      if (!lookahead) {
         lookahead = lookahead2 = null;
       }
     } else {
+      found = lookahead ? lookahead.value : "End of input";
       throw ("Syntax Error. Expected " + t + " found '") + lookahead.value + "' near '" + input.substr(lookahead.from) + "'";
     }
   };
