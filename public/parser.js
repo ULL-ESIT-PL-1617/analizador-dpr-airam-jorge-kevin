@@ -97,7 +97,6 @@ String.prototype.tokens = function() {
 
 var parse = function(input) {
   var condition, expression, factor, lookahead, match, statement, statements, term, tokens, tree;
-  var results = [];
   tokens = input.tokens();
   lookahead = tokens.shift();
   lookahead2 = (tokens.length > 0) ? tokens[0] : null;
@@ -114,21 +113,24 @@ var parse = function(input) {
   };
 
   comma = function() {
-    var result = assing();
-    results.push(result);
-    while(lookahead && lookahead.type === ","){
+    var results = []
+    results.push(assing());
+    while (lookahead && lookahead.type === ",") {
       match(",");
-      result = assing();
-      results.push(result);
+      results.push(assing());
     }
-    return result;
+
+    return {
+        type: "COMMA",
+        values: results
+    };
   };
 
   var constant_table = {
       "true": 1,
       "false": 0
   }
-  var symbol_table = {}
+  var symbol_table = []
   assing = function() {
       var result, id;
 
@@ -137,7 +139,13 @@ var parse = function(input) {
           if (!constant_table[id]) { // Si el ID no es una constante, se puede asignar
               match("ID");
               match("=");
-              result = symbol_table[id] = assing();
+              right = assing();
+              result = {
+                  type: "=",
+                  left: id,
+                  right: right;
+              }
+              symbol_table.push(id)
           } else {
               throw "Syntax error. Cant assing value to ID '" + id + "'";
           }
