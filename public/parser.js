@@ -35,9 +35,8 @@ String.prototype.tokens = function() {
     MULTOP: /[*\/]/g
   };
   RESERVED_WORD = {
-    p: "P",
-    "if": "IF",
-    then: "THEN"
+      "CALL": "CALL",
+      "CONST": "CONST"
   };
   make = function(type, value) {
     return {
@@ -112,6 +111,7 @@ var parse = function(input) {
     }
   };
 
+  console.log(lookahead);
   comma = function() {
     var results = []
     results.push(assing());
