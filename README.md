@@ -71,7 +71,7 @@
     9. Las expresiones son términos seguidos de 0 o más repeticiones de ADDOP y términos.
        Por ejemplo:
           5 + 7
-          9-7
+          9 - 7
           7
        Ó también pueden ser declaraciones a funciones.
        Por ejemplo:
@@ -79,7 +79,14 @@
           funcionTest();
     10. Los términos son factores que pueden a su vez ser multiplicados o divididos por otro factor
         una o más veces.
+        Por ejemplo:
+            7 * 9
+            9 / 5
     11. Los factores son argumentos, números o identificadores.
+        Por ejemplo:
+            (1, 2)
+            7
+            a
     12. Los argumentos son comas entre paréntesis.
         Por ejemplo:
           (x, y)
