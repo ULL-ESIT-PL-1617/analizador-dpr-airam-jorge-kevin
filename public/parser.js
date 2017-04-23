@@ -95,7 +95,7 @@ String.prototype.tokens = function() {
 };
 
 var parse = function(input) {
-  var condition, expression, factor, lookahead, match, statement, statements, term, tokens, tree;
+  var condition, expression, factor, lookahead, match, statement, arguments_, statements, term, tokens, tree;
   tokens = input.tokens();
   lookahead = tokens.shift();
   lookahead2 = (tokens.length > 0) ? tokens[0] : null;
@@ -215,10 +215,6 @@ var parse = function(input) {
         value: lookahead.value
       };
       match("NUM");
-    } else if (lookahead.type === "(") {
-      match("(");
-      result = comma();
-      match(")");
     } else if (lookahead.type === "ID") {
         var key = lookahead.value;
         // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
@@ -229,10 +225,22 @@ var parse = function(input) {
           value: lookahead.value
         };
         match("ID");
+    } else if (lookahead.type === "(") {
+      result = arguments_();
     } else {
       throw "Syntax Error. Expected number or identifier or '(' but found " + (lookahead ? lookahead.value : "end of input") + " near '" + input.substr(lookahead.from) + "'";
     }
     return result;
+  };
+  arguments_ = function() {
+    var result;
+    result = null;
+    if (lookahead.type === "(") {
+      match("(");
+      result = comma();
+      match(")");
+    }
+    return(result);
   };
 
   tree = comma(input);
