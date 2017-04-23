@@ -114,7 +114,7 @@ var parse = function(input) {
       }
     } else {
       found = lookahead ? lookahead.value : "End of input";
-      throw ("Syntax Error. Expected " + t + " found '") + lookahead.value + "' near '" + input.substr(lookahead.from) + "'";
+      throw ("Syntax Error. Expected " + t + " found '") + found + (lookahead ? ("' near '" + input.substr(lookahead.from) + "'") : "'");
     }
   };
 
