@@ -48,8 +48,42 @@
            FUNCTION test (x){
              x = 3;
            }
-    3. Las declaraciones
-    
+    3. Las declaraciones pueden ser condicionales o bucles.
+    4. Los condicionales se declaran de la siguiente forma:
+           IF condicion THEN
+           sentencias . . .
+           [ELSE
+           sentencias . . .]
+           END
+    5. Los bucles se pueden declarar de la siguiente forma:
+           LOOP ( i=0; i < 3) THEN
+             i = i + 1;
+           END
+    6. La coma son una o más asignaciones separadas por comas.
+    7. La asignación puede ser una asignación a una variable que puede ser constante o una condición.
+       Dichas asignaciones se declaran de la siguiente forma:
+           x = 3;
+           CONST y = 5;
+    8. Las condiciones son expresiones que se pueden comparar con otra expresión.
+       Por ejemplo:
+           true
+           i < 5
+    9. Las expresiones son términos seguidos de 0 o más repeticiones de ADDOP y términos.
+       Por ejemplo:
+          5 + 7
+          9-7
+          7
+       Ó también pueden ser declaraciones a funciones.
+       Por ejemplo:
+          funcionTest(5);
+          funcionTest();
+    10. Los términos son factores que pueden a su vez ser multiplicados o divididos por otro factor
+        una o más veces.
+    11. Los factores son argumentos, números o identificadores.
+    12. Los argumentos son comas entre paréntesis.
+        Por ejemplo:
+          (x, y)
+
 ### Recursos
 
 * [Apuntes: Programación Orientada a Objetos](https://casianorodriguezleon.gitbooks.io/ull-esit-1617/content/apuntes/oop/)
