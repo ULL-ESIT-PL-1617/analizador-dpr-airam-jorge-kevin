@@ -18,11 +18,11 @@
 
 ### Descripción del Lenguaje
 
-    1.  Σ = { ADDOP, MULOP, '(', ')', NUM, ',', ID, '=' },
-    2.  V = {  comma, expression, term, factor }
+    1.  Σ = { ADDOP, MULOP, NUM, ID, COMPARISON, CONST, LOOP, THEN, IF, ELSE, END, FUNCTION, '(', ')', '{', '}', ';', ',', '=' },
+    2.  V = {  sentences, functions, statements, if_statement, loop_statement, comma, expression, assing, condition, expression, term, factor, arguments }
     3.  Productions:
         1.  sentences       → ((assing ';') | function | statement)*
-        2.  function        → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
+        2.  functions       → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
         3.  statements      → if_statement | loop_statement
 
         4. if_statement     → if condition then sentences (else sentences)? end
