@@ -177,15 +177,24 @@ var parse = function(input) {
     var result, right, type;
     result = term();
 
-    while (lookahead && lookahead.type === "ADDOP") {
-      type = lookahead.value;
-      match("ADDOP");
-      right = term();
-      result = {
-            type: type,
-            left: result,
-            right: right
-      };
+    if (lookahead && lookahead.type === "CALL") {
+        match("ID");
+        parameters = arguments_();
+        result = {
+              type: "CALL",
+              arguments: parameters,
+        };
+    } else {
+        while (lookahead && lookahead.type === "ADDOP") {
+          type = lookahead.value;
+          match("ADDOP");
+          right = term();
+          result = {
+                type: type,
+                left: result,
+                right: right
+          };
+        }
     }
 
     return result;
