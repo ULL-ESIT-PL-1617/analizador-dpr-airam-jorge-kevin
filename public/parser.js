@@ -19,7 +19,9 @@ RESERVED_WORD = {
     "CONST": "CONST",
     "FUNCTION": "FUNCTION",
     "IF": "IF",
-    "LOOP": "LOOP"
+    "LOOP": "LOOP",
+    "THEN": "THEN",
+    "END": "END"
 };
 
 String.prototype.tokens = function() {
@@ -116,11 +118,11 @@ var parse = function(input) {
 
   sentences = function(){
     var results = []
-    while (lookahead) {
+    while (lookahead && lookahead.type != "END") {
       if(lookahead && lookahead.type == "FUNCTION"){
         results.push(functions());
       } else if (lookahead && (lookahead.type in RESERVED_WORD)) {
-        results.push(statement());
+        results.push(statements());
       } else if (lookahead){
         results.push(assing());
         match(";");
@@ -134,6 +136,24 @@ var parse = function(input) {
       return if_statement();
     else if (lookahead && lookahead.type == "LOOP")
       return loop_statement();
+  }
+
+  loop_statement = function () {
+      match("LOOP");
+      match("(");
+      repeat = assing();
+      match(";");
+      loop_condition = condition();
+      match(")");
+      match("THEN");
+      code = sentences();
+      match("END");
+      return {
+          type: "LOOP",
+          repeat: repeat,
+          loop_condition: loop_condition,
+          code: code
+      }
   }
 
   comma = function() {
@@ -217,8 +237,8 @@ var parse = function(input) {
 
     if (lookahead && lookahead2 && lookahead.type === "ID" && lookahead2.type === '(') {
         id = lookahead.value;
-        //*if (symbol_table[id] != "function")
-         // throw "Syntax Error. Unkown function '" + id + "'";
+        //if (symbol_table[id] != "function")
+        //  throw "Syntax Error. Unkown function '" + id + "'";
         match("ID");
         parameters = arguments_();
         result = {
@@ -272,6 +292,10 @@ var parse = function(input) {
         // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
         if (!symbol_table[key] && !constant_table[key])
           throw "Syntax Error. Unkown identifier '" + key + "'";
+
+        if (key.toUpperCase() in RESERVED_WORD)
+          throw "Syntax Error. '" + key + "' is a reserved word";
+
         result = {
           type: "ID",
           value: lookahead.value
