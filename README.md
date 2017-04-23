@@ -52,39 +52,52 @@
         }
 
 4. Condicionales:
+
         IF condicion THEN
         sentencias . . .
         [ELSE
         sentencias . . .]
         END
+
 5. Bucles:
+
         LOOP (#1 ; #2) THEN
          ...
         END
         #1 => Sentencia que se ejecuta cada vez que se itera sobre el bucle.
         #2 => Condición que se debe cumplir para que continue el bucle.
+
    Por ejemplo:
+
         i = 0
         LOOP ( i = i + 1; i < 3) THEN
          ...
         END
+
 7. La asignación puede se puede realizar a cualquier tipo de expresión
    Dichas asignaciones se declaran de la siguiente forma:
+
         CONST y = 5;
         x = 3 * 2;
         z = foo( 3 * 4);
         h = 1 > 2;
+
 8. Las condiciones toman valor true o false.
    Por ejemplo:
-       true
-       i < 5
+
+        true
+        i < 5
+
 9. Las expresiones son términos que representan operaciones básicas.
    Por ejemplo:
-      5 + 7
-      9 - 7
-      7
+
+        5 + 7
+        9 - 7
+        7
+
    Ó también pueden ser llamdas a funciones.
    Por ejemplo:
+   
         funcionTest(5);
         funcionTest();
         4 * funcionTest(7 * 2);
