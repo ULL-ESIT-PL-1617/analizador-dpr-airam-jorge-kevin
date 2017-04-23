@@ -15,8 +15,7 @@ RegExp.prototype.bexec = function(str) {
   return null;
 };
 
-String.prototype.RESERVED_WORD = {
-    "CALL": "CALL",
+RESERVED_WORD = {
     "CONST": "CONST",
     "FUNCTION": "FUNCTION"
 };
@@ -66,7 +65,7 @@ String.prototype.tokens = function() {
     if (m = tokens.WHITES.bexec(this) || (m = tokens.ONELINECOMMENT.bexec(this)) || (m = tokens.MULTIPLELINECOMMENT.bexec(this))) {
       getTok();
     } else if (m = tokens.ID.bexec(this)) {
-      rw = String.RESERVED_WORD[m[0]];
+      rw = RESERVED_WORD[m[0]];
       if (rw) {
         result.push(make(rw, getTok()));
       } else {
@@ -114,18 +113,18 @@ var parse = function(input) {
   };
 
   sentences = function(){
+    var results = []
     while (lookahead) {
-      console.log(lookahead);
       if(lookahead && lookahead.type == "FUNCTION"){
-        functions();
-      } else if (lookahead && (lookahead.type in String.RESERVED_WORD)) {
-        statement();
+        results.push(functions());
+      } else if (lookahead && (lookahead.type in RESERVED_WORD)) {
+        results.push(statement());
       } else if (lookahead){
-        assing();
-        console.log(lookahead);
+        results.push(assing());
         match(";");
       }
     }
+    return results;
   };
 
   comma = function() {
@@ -207,11 +206,10 @@ var parse = function(input) {
   expression = function() {
     var result, right, type;
 
-    if (lookahead && lookahead.type === "CALL") {
-        match("CALL");
+    if (lookahead && lookahead2 && lookahead.type === "ID" && lookahead2.type === '(') {
         id = lookahead.value;
-        if (symbol_table[id] != "function")
-          throw "Syntax Error. Unkown function '" + id + "'";
+        //*if (symbol_table[id] != "function")
+         // throw "Syntax Error. Unkown function '" + id + "'";
         match("ID");
         parameters = arguments_();
         result = {

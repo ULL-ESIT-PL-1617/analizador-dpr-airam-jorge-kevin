@@ -22,7 +22,7 @@
 2.  V = {  comma, expression, term, factor }
 3.  Productions:
     1.  sentences       → ((assing ';') | function | statement)*
-    2.  function        → ID arguments '{' sentences '}'
+    2.  function        → FUNCTION ID arguments '{' sentences '}'
     3.  statements      → if_statement | loop_statement
 
     4. if_statement     → if condition then sentences (else sentences)? end
@@ -31,7 +31,7 @@
     6.  comma           → assing (',' assing)*
     7.  assing          → const? ID '=' assing | condition
     8.  condition       → expression (COMPARISON expression)?
-    9.  expression      → term ( ADDOP term)* | call ID arguments
+    9.  expression      → term ( ADDOP term)* | ID arguments
     10. term            → factor (MULOP factor)*
     11. factor          → arguments | NUM | ID
     12. arguments       →  '(' comma ')'
