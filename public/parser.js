@@ -130,17 +130,28 @@ var parse = function(input) {
       "true": 1,
       "false": 0
   }
-  var symbol_table = []
+  var symbol_table = {}
   assing = function() {
       var result, id;
+      var is_const = false;
 
       if (lookahead && lookahead.type == "CONST") {
           match("CONST");
+          is_const = true;
+      }
+
+      if (lookahead && lookahead2 && lookahead.type == "ID" && lookahead2.type == '=') {
           id = lookahead.value;
-          
-      } else if (lookahead && lookahead2 && lookahead.type == "ID" && lookahead2.type == '=') {
-          id = lookahead.value;
-          if (!constant_table[id]) { // Si el ID no es una constante, se puede asignar
+
+          // Si la variable es constante y ya existe en la tabla de simbolos y es volatil, error
+          if (!is_const && symbol_table[id] == "const")
+             throw "Syntax error. Cant make existing id '" + id + "' volatile";
+
+          // Si la variable es volatil y ya existe en la tabla de simbolos y es constante, error
+          if (is_const && symbol_table[id] == "volatile")
+             throw "Syntax error. Cant make existing id '" + id + "' constant";
+
+          if (!constant_table[id]) { // Si el ID no es una constante definida, se puede asignar
               match("ID");
               match("=");
               right = assing();
@@ -149,11 +160,11 @@ var parse = function(input) {
                   left: id,
                   right: right
               }
-              symbol_table.push(id)
+              symbol_table[id] = is_const ? "const" : "volatile";
           } else {
               throw "Syntax error. Cant assing value to ID '" + id + "'";
           }
-      } else if (lookahead) {
+      } else if (lookahead && !is_const) {
           result  = condition();
       }
 
@@ -179,16 +190,21 @@ var parse = function(input) {
   }
   expression = function() {
     var result, right, type;
-    result = term();
 
     if (lookahead && lookahead.type === "CALL") {
+        match("CALL");
+        id = lookahead.value;
+        if (symbol_table[id] != "function")
+          throw "Syntax Error. Unkown function '" + id + "'";
         match("ID");
         parameters = arguments_();
         result = {
               type: "CALL",
-              arguments: parameters,
+              id: id,
+              arguments: parameters
         };
     } else {
+        result = term();
         while (lookahead && lookahead.type === "ADDOP") {
           type = lookahead.value;
           match("ADDOP");
@@ -231,7 +247,7 @@ var parse = function(input) {
     } else if (lookahead.type === "ID") {
         var key = lookahead.value;
         // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
-        if ((symbol_table.indexOf(key) < -1) && (constant_table.indexOf(key) < -1))
+        if (!symbol_table[key] && !constant_table[key])
           throw "Syntax Error. Unkown identifier '" + key + "'";
         result = {
           type: "ID",
