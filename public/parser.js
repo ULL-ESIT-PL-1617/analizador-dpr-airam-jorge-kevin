@@ -15,8 +15,14 @@ RegExp.prototype.bexec = function(str) {
   return null;
 };
 
+String.prototype.RESERVED_WORD = {
+    "CALL": "CALL",
+    "CONST": "CONST",
+    "FUNCTION": "FUNCTION"
+};
+
 String.prototype.tokens = function() {
-  var RESERVED_WORD, from, getTok, i, key, m, make, n, result, rw, tokens, value;
+  var from, getTok, i, key, m, make, n, result, rw, tokens, value;
   from = void 0;
   i = 0;
   n = void 0;
@@ -33,10 +39,6 @@ String.prototype.tokens = function() {
     ONECHAROPERATORS: /([=()&|;:,{}[\]])/g,
     ADDOP: /[+-]/g,
     MULTOP: /[*\/]/g
-  };
-  RESERVED_WORD = {
-      "CALL": "CALL",
-      "CONST": "CONST"
   };
   make = function(type, value) {
     return {
@@ -64,7 +66,7 @@ String.prototype.tokens = function() {
     if (m = tokens.WHITES.bexec(this) || (m = tokens.ONELINECOMMENT.bexec(this)) || (m = tokens.MULTIPLELINECOMMENT.bexec(this))) {
       getTok();
     } else if (m = tokens.ID.bexec(this)) {
-      rw = RESERVED_WORD[m[0]];
+      rw = String.RESERVED_WORD[m[0]];
       if (rw) {
         result.push(make(rw, getTok()));
       } else {
@@ -111,7 +113,21 @@ var parse = function(input) {
     }
   };
 
-  console.log(lookahead);
+  sentences = function(){
+    while (lookahead) {
+      console.log(lookahead);
+      if(lookahead && lookahead.type == "FUNCTION"){
+        functions();
+      } else if (lookahead && (lookahead.type in String.RESERVED_WORD)) {
+        statement();
+      } else if (lookahead){
+        assing();
+        console.log(lookahead);
+        match(";");
+      }
+    }
+  };
+
   comma = function() {
     var results = []
     results.push(assing());
@@ -272,7 +288,7 @@ var parse = function(input) {
     return(result);
   };
 
-  tree = comma(input);
+  tree = sentences(input);
 
   if (lookahead != null) {
     throw "Syntax Error parsing statements. " + "Expected 'end of input' and found '" + input.substr(lookahead.from) + "'";
