@@ -113,6 +113,81 @@
         funcionTest();
         4 * funcionTest(7 * 2);
 
+### Árbol sintáctico
+
+El árbol sintáctico generado contendrá los siguientes atributos.
+ - result: Contiene el código
+ - symbolTable: Contiene información sobre los símbolos globales de variables del programa.
+ - functionTable: Contiene información sobre los símbolos que representan funciones y su propia tabla de símbolos locales.
+ - constantTable: Contiene información sobre las constantes y sus valores (true & false).
+Algunos ejemplos del árbol sintáctico generado:
+
+1. Código simple con tres instrucciones:
+
+        x = 1;
+        y = 2;
+        z = (x + 4) * y;
+
+    Árbol resultado:
+
+        {
+          "result": [
+            { // Primera asignación
+              "type": "=",
+              "left": "x",
+              "right": {
+                "type": "NUM",
+                "value": 1
+              }
+            },
+            { // Segunda asignación
+              "type": "=",
+              "left": "y",
+              "right": {
+                "type": "NUM",
+                "value": 2
+              }
+            },
+            { // Tercera asignación
+              "type": "=",
+              "left": "z",
+              "right": { // La parte derecha de la asignación contiene una expresión.
+                "type": "*",
+                "left": { // Paréntesis izquierdo de la multiplicación
+                  "type": "COMMA",
+                  "values": [
+                    { // El paréntesis contiene una suma de un ID y un valor
+                      "type": "+",
+                      "left": {
+                        "type": "ID",
+                        "value": "x"
+                      },
+                      "right": {
+                        "type": "NUM",
+                        "value": 4
+                      }
+                    }
+                  ]
+                },
+                "right": { // ID a la derecha de la multiplicación
+                  "type": "ID",
+                  "value": "y"
+                }
+              }
+            }
+          ],
+          "symbolTable": { // Tabla de símbolos globales. Ninguno es constante
+            "x": "volatile",
+            "y": "volatile",
+            "z": "volatile"
+          },
+          "functionTable": {},
+          "constantTable": {
+            "true": 1,
+            "false": 0
+          }
+        }
+
 ### Recursos
 
 * [Apuntes: Programación Orientada a Objetos](https://casianorodriguezleon.gitbooks.io/ull-esit-1617/content/apuntes/oop/)
