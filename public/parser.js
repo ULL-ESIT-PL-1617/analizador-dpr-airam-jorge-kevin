@@ -486,7 +486,7 @@ var parse = function(input) {
   return {
     result: tree,
     symbolTable: symbol_table,
-    functionTable: function_table, c
+    functionTable: function_table, 
     onstantTable: constant_table
   };
 };
