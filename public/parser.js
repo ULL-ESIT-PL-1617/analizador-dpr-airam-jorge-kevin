@@ -165,7 +165,6 @@ var parse = function(input) {
 
     // Parámetros de la función
     match("(");
-    console.log("A");
     while (lookahead && lookahead.type === "ID") {
       param_id = lookahead.value;
       // Evita declarar un parámetro que ya existe
@@ -179,7 +178,6 @@ var parse = function(input) {
       if (lookahead2 && lookahead2.type === "ID")
         match(",");
     }
-    console.log("B")
     match(")");
     function_table[id] = {
       "local_symbol_table": function_symbols
@@ -486,7 +484,7 @@ var parse = function(input) {
   return {
     result: tree,
     symbolTable: symbol_table,
-    functionTable: function_table, 
+    functionTable: function_table,
     onstantTable: constant_table
   };
 };
