@@ -485,6 +485,6 @@ var parse = function(input) {
     result: tree,
     symbolTable: symbol_table,
     functionTable: function_table,
-    onstantTable: constant_table
+    constantTable: constant_table
   };
 };
