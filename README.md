@@ -8,18 +8,18 @@
 
     3.  Productions:
         1.  sentences       → ((assing ';') | function | statement)*
-        2.  functions       → FUNCTION ID '(' ID (',' ID)* ')' '{' sentences '}'
+        2.  functions       → FUNCTION ID '(' ID? (',' ID)* ')' '{' sentences '}'
         3.  statements      → if_statement | loop_statement
 
-        4. if_statement     → if condition THEN sentences (ELSE sentences)? END
-        5. loop_statement   → loop '(' assing ';' condition ')' THEN sentences END
+        4. if_statement     → IF condition THEN sentences (ELSE sentences)? END
+        5. loop_statement   → LOOP '(' assing ';' condition ')' THEN sentences END
 
         6.  comma           → assing (',' assing)*
         7.  assing          → CONST? ID '=' assing | condition
         8.  condition       → expression (COMPARISON expression)?
-        9.  expression      → term (ADDOP term)* | ID arguments
+        9.  expression      → term (ADDOP term)*
         10. term            → factor (MULOP factor)*
-        11. factor          → arguments | NUM | ID
+        11. factor          → arguments | NUM | ID | ID arguments | ID '(' ')'
         12. arguments       → '(' comma ')'
 
 ### Descripción de uso del Lenguaje

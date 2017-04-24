@@ -136,12 +136,12 @@ var parse = function(input) {
   // justo en el momento en el que se encuentre la palabra clave "END" o "ELSE"
   sentences = function(stop_conditions) {
     var results = []
-    while (lookahead && (!stop_conditions || (stop_conditions.indexOf(lookahead.type) == -1))) {
-      if (lookahead && lookahead.type == "FUNCTION") {
+    while (lookahead && (!stop_conditions || (stop_conditions.indexOf(lookahead.type) === -1))) {
+      if (lookahead && lookahead.type === "FUNCTION") {
         results.push(functions());
-      } else if (lookahead && (lookahead.type == "LOOP" || lookahead.type == "IF")) {
+      } else if (lookahead && (lookahead.type === "LOOP" || lookahead.type === "IF")) {
         results.push(statements());
-      } else if (lookahead){
+      } else if (lookahead) {
         results.push(assing());
         match(";");
       }
@@ -165,19 +165,21 @@ var parse = function(input) {
 
     // Parámetros de la función
     match("(");
-    while (lookahead && lookahead.type == "ID") {
+    console.log("A");
+    while (lookahead && lookahead.type === "ID") {
       param_id = lookahead.value;
       // Evita declarar un parámetro que ya existe
-      if (function_symbols[param_id] == "volatile")
-        throw "Syntax error. Redeclaring parameter '" + param_id + "' in function '" + id + "'";
+      if (function_symbols[param_id] === "parameter")
+      throw "Syntax error. Redeclaring parameter '" + param_id + "' in function '" + id + "'";
 
-      function_symbols[param_id] = "volatile";
+      function_symbols[param_id] = "parameter";
       match("ID");
 
       // Si hay otro parámetro, debe hacer un match con la coma
-      if (lookahead2 && lookahead2.type == "ID")
+      if (lookahead2 && lookahead2.type === "ID")
         match(",");
     }
+    console.log("B")
     match(")");
     function_table[id] = {
       "local_symbol_table": function_symbols
@@ -200,30 +202,58 @@ var parse = function(input) {
   // statements → if_statement | loop_statement
   // Permite más modularidad, para dividir cada statement en distintas funciones
   statements = function() {
-    if (lookahead && lookahead.type == "IF")
+    if (lookahead && lookahead.type === "IF")
       return if_statement();
-    else if (lookahead && lookahead.type == "LOOP")
+    else if (lookahead && lookahead.type === "LOOP")
       return loop_statement();
-  }
+  };
 
   // loop_statement → loop '(' assing ';' condition ')' THEN sentences END
   loop_statement = function () {
-      match("LOOP");
-      match("(");
-      repeat = assing(); // Código que se ejecutará cada vez
-      match(";");
-      loop_condition = condition(); // Condición de ejecución del bucle
-      match(")");
-      match("THEN");
-      code = sentences(["END"]); // Código que ejecuta el bucle
+    match("LOOP");
+    match("(");
+    repeat = assing(); // Código que se ejecutará cada vez
+    match(";");
+    loop_condition = condition(); // Condición de ejecución del bucle
+    match(")");
+    match("THEN");
+    code = sentences(["END"]); // Código que ejecuta el bucle
+    match("END");
+    return {
+      type: "LOOP",
+      repeat: repeat,
+      loop_condition: loop_condition,
+      code: code
+    }
+  };
+
+  // if_statement → IF condition THEN sentences (ELSE sentences)? END
+  if_statement = function() {
+    var result, if_condition, if_sentence, else_sentece;
+    match("IF");
+    if_condition = condition(); // Condición del IF
+    match("THEN");
+    if_sentence = sentences(["ELSE", "END"]); // Código del IF
+
+    // En caso de que haya un ELSE
+    if (lookahead && lookahead.type === "ELSE") {
+      match("ELSE");
+      else_sentece = sentences(["END"]); // Código del ELSE
       match("END");
       return {
-          type: "LOOP",
-          repeat: repeat,
-          loop_condition: loop_condition,
-          code: code
+        type: "IF",
+        if_condition: if_condition,
+        if_sentence: if_sentence,
+        else_sentece: else_sentece
       }
-  }
+    }
+    match("END");
+    return {
+      type: "IF",
+      if_condition: if_condition,
+      if_sentence: if_sentence
+    }
+  };
 
   // comma → assing (',' assing)*
   comma = function() {
@@ -234,79 +264,61 @@ var parse = function(input) {
       results.push(assing());
     }
     return {
-        type: "COMMA",
-        values: results
+      type: "COMMA",
+      values: results
     };
   };
 
   // assing → CONST? ID '=' assing | condition
   assing = function() {
-      var result, id;
-      var is_const = false;
+    var result, id;
+    var type = "volatile"; // Indica si el ID de la asignación es constante o volatil o de otro tipo
 
-      if (lookahead && lookahead.type == "CONST") {
-          match("CONST");
-          is_const = true;
-      }
-
-      if (lookahead && lookahead2 && lookahead.type == "ID" && lookahead2.type == '=') {
-          id = lookahead.value;
-
-          // Si la variable es constante y ya existe en la tabla de simbolos y es volatil, error
-          if (!is_const && symbolTableForScope()[id] == "const")
-             throw "Syntax error. Cant make existing id '" + id + "' volatile";
-
-          // Si la variable es volatil y ya existe en la tabla de simbolos y es constante, error
-          if (is_const && symbolTableForScope()[id] == "volatile")
-             throw "Syntax error. Cant make existing id '" + id + "' constant";
-
-          if (!constant_table[id]) { // Si el ID no es una constante definida, se puede asignar
-              match("ID");
-              match("=");
-              right = assing();
-              result = {
-                  type: "=",
-                  left: id,
-                  right: right
-              }
-              symbolTableForScope()[id] = is_const ? "const" : "volatile";
-          } else {
-              throw "Syntax error. Cant assing value to ID '" + id + "'";
-          }
-      } else if (lookahead && !is_const) {
-          result  = condition();
-      }
-
-      return result;
-  };
-
-  if_statement = function() {
-    var result, if_condition, if_sentence, else_sentece;
-    if(lookahead && lookahead.type === "IF") {
-      match("IF");
-      if_condition = condition();
-      match("THEN");
-      if_sentence = sentences(["ELSE", "END"]);
-      if(lookahead && lookahead.type === "ELSE") {
-        match("ELSE");
-        else_sentece = sentences(["END"]);
-        match("END");
-        return {
-          type: "IF",
-          if_condition: if_condition,
-          if_sentence: if_sentence,
-          else_sentece: else_sentece
-        }
-      }
-      match("END");
-      return {
-        type: "IF",
-        if_condition: if_condition,
-        if_sentence: if_sentence
-      }
+    if (lookahead && lookahead.type === "CONST") {
+      match("CONST");
+      type = "const";
     }
+
+    if (lookahead && lookahead2 && lookahead.type === "ID" && lookahead2.type === '=') {
+      id = lookahead.value;
+
+      // Si estamos dentro del scope de una función y la variable existe como parámetro, no se puede asignar como const, error
+      if (type === "const" && symbolTableForScope()[id] === "parameter")
+        throw "Syntax error. Cant make existing id '" + id + "' " + " constant, parameters are always volatile";
+
+      if (symbolTableForScope()[id] === "parameter")
+        type = "parameter";
+
+      // Si la variable es constante y ya existe en la tabla de simbolos y es volatil, error
+      if (type === "volatile" && symbolTableForScope()[id] === "const")
+        throw "Syntax error. Cant make existing id '" + id + "' volatile";
+
+      // Si la variable es volatil y ya existe en la tabla de simbolos y es constante, error
+      if (type === "const" && symbolTableForScope()[id] === "volatile")
+        throw "Syntax error. Cant make existing id '" + id + "' constant";
+
+      // Si el ID no es una constante definida, se puede asignar
+      if (constant_table[id] === undefined) {
+        match("ID");
+        match("=");
+        right = assing();
+        result = {
+          type: "=",
+          left: id,
+          right: right
+        }
+        symbolTableForScope()[id] = type;
+      } else {
+        throw "Syntax error. Cant assing value to ID '" + id + "'";
+      }
+    } else if (lookahead && (type !== "const")) {
+      result  = condition();
+    }
+
+    return result;
   };
 
+  // condition → expression (COMPARISON expression)?
   condition = function() {
     var result, right, type;
 
@@ -317,49 +329,42 @@ var parse = function(input) {
       match("COMPARISON");
       right = expression();
       result = {
-            type: type,
-            left: result,
-            right: right
+        type: type,
+        left: result,
+        right: right
       };
     }
 
     return result;
   }
+
+  // expression → term (ADDOP term)*
   expression = function() {
     var result, right, type;
 
-    if (lookahead && lookahead2 && lookahead.type === "ID" && lookahead2.type === '(') {
-        id = lookahead.value;
-        if (!function_table[id])
-          throw "Syntax Error. Unkown function '" + id + "'";
-        match("ID");
-        parameters = arguments_();
-
-        size1 = parameters.values.length
-        size2 = Object.keys(function_table[id]["local_symbol_table"]).length
-        if (size1 != size2)
-          throw "Syntax Error. Invalid number of arguments for function '" + id + "'. Expected " + size2 + " got " + size1;
-
-        result = {
-              type: "CALL",
-              id: id,
-              arguments: parameters
-        };
-    } else {
-        result = term();
-        while (lookahead && lookahead.type === "ADDOP") {
-          type = lookahead.value;
-          match("ADDOP");
-          right = term();
-          result = {
-                type: type,
-                left: result,
-                right: right
-          };
-        }
+    result = term();
+    while (lookahead && lookahead.type === "ADDOP") {
+      type = lookahead.value;
+      match("ADDOP");
+      right = term();
+      result = {
+        type: type,
+        left: result,
+        right: right
+      };
     }
 
     return result;
+  };
+
+  /** Cuenta el número de parámetros de la función a partir de la tabla completa de símbolos local de una función **/
+  countParameters = function(local_symbol_table) {
+    var count = 0;
+    for (var i in local_symbol_table) {
+      if (local_symbol_table[i] === "parameter")
+        count++;
+    }
+    return count;
   };
 
   term = function() {
@@ -387,19 +392,50 @@ var parse = function(input) {
       };
       match("NUM");
     } else if (lookahead.type === "ID") {
-        var key = lookahead.value;
-        // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
-        if (!symbolTableForScope()[key] && constant_table[key] == undefined)
-          throw "Syntax Error. Unkown identifier '" + key + "'";
 
-        if (key.toUpperCase() in RESERVED_WORD)
-          throw "Syntax Error. '" + key + "' is a reserved word";
+        // Es el ID de una función
+        if (lookahead2 && lookahead2.type === '(') {
+          id = lookahead.value;
 
-        result = {
-          type: "ID",
-          value: lookahead.value
-        };
-        match("ID");
+          // Evita que
+          if (!function_table[id])
+            throw "Syntax Error. Unkown function '" + id + "'";
+
+          match("ID");
+          if (lookahead2 && lookahead2.value === ")") {
+            match("(");
+            parameters = { values: []};
+            match(")");
+          } else
+            parameters = arguments_();
+
+          // Evita que una llamada a una función se produzca con un número erróneo de argumentos
+          size1 = parameters.values.length;
+          size2 = countParameters(function_table[id]["local_symbol_table"]);
+          if (size1 != size2)
+            throw "Syntax Error. Invalid number of arguments for function '" + id + "'. Expected " + size2 + " got " + size1;
+
+          result = {
+            type: "CALL",
+            id: id,
+            arguments: parameters
+          };
+        } else { // No es el ID de una función
+          var key = lookahead.value;
+
+          // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
+          if (!symbolTableForScope()[key] && (constant_table[key] === undefined))
+            throw "Syntax Error. Unkown identifier '" + key + "'";
+
+          if (key.toUpperCase() in RESERVED_WORD)
+            throw "Syntax Error. '" + key + "' is a reserved word";
+
+          result = {
+            type: "ID",
+            value: lookahead.value
+          };
+          match("ID");
+        }
     } else if (lookahead.type === "(") {
       result = arguments_();
     } else {
