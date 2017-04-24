@@ -188,6 +188,135 @@ Algunos ejemplos del árbol sintáctico generado:
           }
         }
 
+2. Utilizando una función
+
+        FUNCTION add(x, y) {
+            z = x + y;
+        }
+
+        add(1, 3);
+
+    Árbol resultado:
+
+        {
+          "result": [
+            { // Declaración de la función
+              "type": "FUNCTION",
+              "id": "add",
+              "parameters": { // Variables locales a la función
+                "x": "parameter",
+                "y": "parameter",
+                "z": "volatile"
+              },
+              "code": [ // Código de la función
+                {
+                  "type": "=",
+                  "left": "z",
+                  "right": {
+                    "type": "+",
+                    "left": {
+                      "type": "ID",
+                      "value": "x"
+                    },
+                    "right": {
+                      "type": "ID",
+                      "value": "y"
+                    }
+                  }
+                }
+              ]
+            },
+            { // Llamada a la función
+              "type": "CALL",
+              "id": "add",
+              "arguments": {
+                "type": "COMMA",
+                "values": [ // Argumentos de la función
+                  {
+                    "type": "NUM",
+                    "value": 1
+                  },
+                  {
+                    "type": "NUM",
+                    "value": 3
+                  }
+                ]
+              }
+            }
+          ],
+          "symbolTable": {},
+          "functionTable": {
+            "add": {
+              "local_symbol_table": {
+                "x": "parameter",
+                "y": "parameter",
+                "z": "volatile"
+              }
+            }
+          },
+          "constantTable": {
+            "true": 1,
+            "false": 0
+          }
+        }
+
+3. Utilizando una sentencia IF
+
+        IF 2 > 3 THEN
+            c = 4;
+        ELSE
+            c = 5;
+        END
+
+    Árbol resultado:
+
+        {
+          "result": [
+            {
+              "type": "IF",
+              "if_condition": { // Condición del IF
+                "type": ">",
+                "left": {
+                  "type": "NUM",
+                  "value": 2
+                },
+                "right": {
+                  "type": "NUM",
+                  "value": 3
+                }
+              },
+              "if_sentence": [ // Código si la condición se cumple
+                {
+                  "type": "=",
+                  "left": "c",
+                  "right": {
+                    "type": "NUM",
+                    "value": 4
+                  }
+                }
+              ],
+              "else_sentece": [ // Código si la condición no se cumple
+                {
+                  "type": "=",
+                  "left": "c",
+                  "right": {
+                    "type": "NUM",
+                    "value": 5
+                  }
+                }
+              ]
+            }
+          ],
+          "symbolTable": {
+            "c": "volatile"
+          },
+          "functionTable": {},
+          "constantTable": {
+            "true": 1,
+            "false": 0
+          }
+        }
+
 ### Recursos
 
 * [Apuntes: Programación Orientada a Objetos](https://casianorodriguezleon.gitbooks.io/ull-esit-1617/content/apuntes/oop/)
