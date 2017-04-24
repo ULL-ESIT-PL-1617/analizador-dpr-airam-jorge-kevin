@@ -367,6 +367,7 @@ var parse = function(input) {
     return count;
   };
 
+  // term → factor (MULOP factor)*
   term = function() {
     var result, right, type;
     result = factor();
@@ -375,16 +376,21 @@ var parse = function(input) {
       match("MULTOP");
       right = term();
       result = {
-            type: type,
-            left: result,
-            right: right
+        type: type,
+        left: result,
+        right: right
       };
     }
     return result;
   };
+
+  // factor → arguments | NUM | ID | ID arguments | ID '(' ')'
+  // Los dos últimos elementos diferencian una función con argumentos y sin argumentos
   factor = function() {
     var result;
     result = null;
+
+    // Match con un número
     if (lookahead.type === "NUM") {
       result = {
         type: "NUM",
@@ -393,56 +399,64 @@ var parse = function(input) {
       match("NUM");
     } else if (lookahead.type === "ID") {
 
-        // Es el ID de una función
-        if (lookahead2 && lookahead2.type === '(') {
-          id = lookahead.value;
+      // Es el ID de una función
+      if (lookahead2 && lookahead2.type === '(') {
+        id = lookahead.value;
 
-          // Evita que
-          if (!function_table[id])
-            throw "Syntax Error. Unkown function '" + id + "'";
+        // Evita que se llame a una función que no existe
+        if (!function_table[id])
+        throw "Syntax Error. Unkown function '" + id + "'";
 
-          match("ID");
-          if (lookahead2 && lookahead2.value === ")") {
-            match("(");
-            parameters = { values: []};
-            match(")");
-          } else
-            parameters = arguments_();
+        match("ID");
 
-          // Evita que una llamada a una función se produzca con un número erróneo de argumentos
-          size1 = parameters.values.length;
-          size2 = countParameters(function_table[id]["local_symbol_table"]);
-          if (size1 != size2)
-            throw "Syntax Error. Invalid number of arguments for function '" + id + "'. Expected " + size2 + " got " + size1;
+        // Diferencia entre una función sin y con argumentos
+        if (lookahead2 && lookahead2.value === ")") {
+          match("(");
+          parameters = { values: []};
+          match(")");
+        } else
+          parameters = arguments_();
 
-          result = {
-            type: "CALL",
-            id: id,
-            arguments: parameters
-          };
-        } else { // No es el ID de una función
-          var key = lookahead.value;
+        // Evita que una llamada a una función se produzca con un número erróneo de argumentos
+        size1 = parameters.values.length;
+        size2 = countParameters(function_table[id]["local_symbol_table"]);
+        if (size1 != size2)
+        throw "Syntax Error. Invalid number of arguments for function '" + id + "'. Expected " + size2 + " got " + size1;
 
-          // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
-          if (!symbolTableForScope()[key] && (constant_table[key] === undefined))
-            throw "Syntax Error. Unkown identifier '" + key + "'";
+        result = {
+          type: "CALL",
+          id: id,
+          arguments: parameters
+        };
+      }
+      // No es el ID de una función sino de una variable
+      else {
+        var key = lookahead.value;
 
-          if (key.toUpperCase() in RESERVED_WORD)
-            throw "Syntax Error. '" + key + "' is a reserved word";
+        // Si no existe en la tabla de símbolos ni en la tabla de constantes, error
+        if (!symbolTableForScope()[key] && (constant_table[key] === undefined))
+          throw "Syntax Error. Unkown identifier '" + key + "'";
 
-          result = {
-            type: "ID",
-            value: lookahead.value
-          };
-          match("ID");
-        }
+        // Si es una palabra reservada, error
+        if (key.toUpperCase() in RESERVED_WORD)
+          throw "Syntax Error. '" + key + "' is a reserved word";
+
+        result = {
+          type: "ID",
+          value: lookahead.value
+        };
+        match("ID");
+      }
     } else if (lookahead.type === "(") {
+      // Para expresiones del tipo a = (1, 2, 3 * 3)
       result = arguments_();
     } else {
       throw "Syntax Error. Expected number or identifier or '(' but found " + (lookahead ? lookahead.value : "end of input") + " near '" + input.substr(lookahead.from) + "'";
     }
     return result;
   };
+
+  // arguments → '(' comma ')'
   arguments_ = function() {
     var result;
     result = null;
@@ -454,6 +468,7 @@ var parse = function(input) {
     return(result);
   };
 
+  // Devuelve la tabla de símbolos para el scope actual
   symbolTableForScope = function() {
       if (scope_stack.length < 1)
         return symbol_table;
@@ -468,5 +483,10 @@ var parse = function(input) {
   if (lookahead != null) {
     throw "Syntax Error parsing statements. " + "Expected 'end of input' and found '" + input.substr(lookahead.from) + "'";
   }
-  return {result: tree, symbolTable: symbol_table, functionTable: function_table, constantTable: constant_table};
+  return {
+    result: tree,
+    symbolTable: symbol_table,
+    functionTable: function_table, c
+    onstantTable: constant_table
+  };
 };
