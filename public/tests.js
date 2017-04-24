@@ -68,7 +68,7 @@
               "type": "FUNCTION",
               "id": "test",
               "parameters": {
-                "x": "volatile"
+                "x": "parameter"
               },
               "code": [
                 {
@@ -86,7 +86,7 @@
           "functionTable": {
             "test": {
               "local_symbol_table": {
-                "x": "volatile"
+                "x": "parameter"
               }
             }
           },
@@ -242,7 +242,7 @@
               "type": "FUNCTION",
               "id": "foo",
               "parameters": {
-                "x": "volatile"
+                "x": "parameter"
               },
               "code": []
             },
@@ -318,7 +318,7 @@
           "functionTable": {
             "foo": {
               "local_symbol_table": {
-                "x": "volatile"
+                "x": "parameter"
               }
             }
           },
@@ -407,10 +407,90 @@
           }
         });
     });
-    // test('Function calls are parsed correctly', () => {
-    //   var result = parse(''/*AQUÍ la sentencia*/);
-    //   console.log(result);
-    //   assert.deepEqual(result, /*AQUÍ la solución*/);
+    test('Function calls are parsed correctly', () => {
+      var result = parse('FUNCTION f1(){} FUNCTION f2(x){} f2(5); f1(); 4 * f2(7 * 2);');
+      console.log(result);
+      assert.deepEqual(result, {
+          "result": [
+            {
+              "type": "FUNCTION",
+              "id": "f1",
+              "parameters": {},
+              "code": []
+            },
+            {
+              "type": "FUNCTION",
+              "id": "f2",
+              "parameters": {
+                "x": "parameter"
+              },
+              "code": []
+            },
+            {
+              "type": "CALL",
+              "id": "f2",
+              "arguments": {
+                "type": "COMMA",
+                "values": [
+                  {
+                    "type": "NUM",
+                    "value": 5
+                  }
+                ]
+              }
+            },
+            {
+              "type": "CALL",
+              "id": "f1",
+              "arguments": {
+                "values": []
+              }
+            },
+            {
+              "type": "*",
+              "left": {
+                "type": "NUM",
+                "value": 4
+              },
+              "right": {
+                "type": "CALL",
+                "id": "f2",
+                "arguments": {
+                  "type": "COMMA",
+                  "values": [
+                    {
+                      "type": "*",
+                      "left": {
+                        "type": "NUM",
+                        "value": 7
+                      },
+                      "right": {
+                        "type": "NUM",
+                        "value": 2
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "symbolTable": {},
+          "functionTable": {
+            "f1": {
+              "local_symbol_table": {}
+            },
+            "f2": {
+              "local_symbol_table": {
+                "x": "parameter"
+              }
+            }
+          },
+          "constantTable": {
+            "true": 1,
+            "false": 0
+          }
+        });
+    });
 
   });
 }).call(this);
