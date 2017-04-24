@@ -1,3 +1,28 @@
+# Creación de un Lenguaje
+
+#### Autores
+
+<table>
+<tr>
+<td> Airam Manuel Navas Simón </td>
+<td> <a href="https://github.com/AiramNavas">GitHub</a> </td>
+<td> <a href="https://airamnavas.github.io/">Página personal</a> </td>
+<td> <a href="https://analizadordpr-airamnavas.herokuapp.com/">Heroku</a> </td>
+</tr>
+<tr>
+<td> Kevin Días Marrero </td>
+<td> <a href="https://github.com/alu0100880625">GitHub</a> </td>
+<td> <a href="https://alu0100880625.github.io/">Página personal</a></td>
+<td> <a href="">Heroku</a></td>
+</tr>
+<tr>
+<td> Jorge Sierra Acosta </td>
+<td> <a href="https://github.com/Ediolot">GitHub</a> </td>
+<td> <a href="https://ediolot.github.io/">Página personal</a> </td>
+<td> <a href="https://analizador-dpr-alu0100896282.herokuapp.com/">Heroku</a> </td>
+</tr>
+</table>
+
 ### Descripción del Lenguaje
 
     1.  Σ = { ADDOP, MULOP, NUM, ID, COMPARISON, CONST, LOOP, THEN, IF, ELSE, END,
