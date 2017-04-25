@@ -25,7 +25,7 @@
 
 ### Descripción del Lenguaje
 
-    1.  Σ = { ADDOP, MULOP, NUM, ID, COMPARISON, CONST, LOOP, THEN, IF, ELSE, END,
+    1.  Σ = { ADDOP, MULOP, NUM, ID, COMPARISON, CONST, LOOP, IF, ELSE,
               FUNCTION, '(', ')', '{', '}', ';', ',', '=' }
 
     2.  V = {  sentences, functions, statements, if_statement, loop_statement, comma,
@@ -36,15 +36,15 @@
         2.  functions       → FUNCTION ID '(' ID? (',' ID)* ')' '{' sentences '}'
         3.  statements      → if_statement | loop_statement
 
-        4. if_statement     → IF condition THEN sentences (ELSE sentences)? END
-        5. loop_statement   → LOOP '(' assing ';' condition ')' THEN sentences END
+        4. if_statement     → IF condition '{' sentences '}' (ELSE IF '{' sentences '}' )* (ELSE '{' sentences '}')?
+        5. loop_statement   → LOOP '(' comma ';' condition ';' comma ')' '{' sentences '}'
 
         6.  comma           → assing (',' assing)*
         7.  assing          → CONST? ID '=' assing | condition
         8.  condition       → expression (COMPARISON expression)?
         9.  expression      → term (ADDOP term)*
         10. term            → factor (MULOP factor)*
-        11. factor          → arguments | NUM | ID | ID arguments | ID '(' ')'
+        11. factor          → arguments | NUM | ID | ID arguments | ID '(' ')' | EXIT | RETURN assing?
         12. arguments       → '(' comma ')'
 
 ### Descripción de uso del Lenguaje
@@ -52,66 +52,68 @@
 1. Las sentencias pueden ser asignaciones, funciones o declaraciones.
 2. Las funciones se declaran de la siguiente forma. Pueden ser declaradas en cualquier momento y accedidas globalmente:
 
-       FUNCTION ID (ID, ID, ...) {
-         sentencias ...
+       FUNCTION ID(ID, ID, ...) {
+         ...
+         RETURN ...;
        }
 
    Por ejemplo:
 
-        FUNCTION test (x){
+        FUNCTION test(x){
          x = 3;
+        }
+
+        FUNCTION foo() {
+          RETURN 3;
         }
 
 4. Condicionales:
 
-        IF condicion THEN
-        sentencias . . .
-        [ELSE
-        sentencias . . .]
-        END
+        IF condicion {
+          ...
+        }
+
+        IF condition {
+          ...
+        } ELSE IF condition {
+          ...
+        } ELSE IF condition {
+          ...
+        } ELSE {
+          ...
+        }
 
 5. Bucles:
 
-        LOOP (#1 ; #2) THEN
+        LOOP (#1 ; #2; #3) {
          ...
-        END
-        #1 => Sentencia que se ejecuta cada vez que se itera sobre el bucle.
+        }
+        #1 => Operaciones que se ejecutan antes de entrar al bucle.
         #2 => Condición que se debe cumplir para que continue el bucle.
+        #3 => Operaciones que se ejecutan cada vez que se itera sobre el bucle.
 
    Por ejemplo:
 
-        i = 0
-        LOOP ( i = i + 1; i < 3) THEN
+        LOOP ( i = 0; i < 3; i = i + 1) {
          ...
-        END
+        }
 
 7. La asignación puede se puede realizar a cualquier tipo de expresión
    Dichas asignaciones se declaran de la siguiente forma:
 
         CONST y = 5;
         x = 3 * 2;
-        z = foo( 3 * 4);
+        z = foo( 3 * 4) * 4;
         h = 1 > 2;
+
+    No es necesario declarar las variables previamente para que la asignación se
+    produzca.
 
 8. Las condiciones toman valor true o false.
    Por ejemplo:
 
-        true
-        i < 5
-
-9. Las expresiones son términos que representan operaciones básicas.
-   Por ejemplo:
-
-        5 + 7
-        9 - 7
-        7
-
-   Ó también pueden ser llamdas a funciones.
-   Por ejemplo:
-
-        funcionTest(5);
-        funcionTest();
-        4 * funcionTest(7 * 2);
+        condition1 = true
+        condition2 = i < 5
 
 ### Árbol sintáctico
 
@@ -132,51 +134,51 @@ Algunos ejemplos del árbol sintáctico generado:
 
         {
           "result": [
-            { // Primera asignación
-              "type": "=",
-              "left": "x",
-              "right": {
-                "type": "NUM",
-                "value": 1
-              }
-            },
-            { // Segunda asignación
-              "type": "=",
-              "left": "y",
-              "right": {
-                "type": "NUM",
-                "value": 2
-              }
-            },
-            { // Tercera asignación
-              "type": "=",
-              "left": "z",
-              "right": { // La parte derecha de la asignación contiene una expresión.
-                "type": "*",
-                "left": { // Paréntesis izquierdo de la multiplicación
-                  "type": "COMMA",
-                  "values": [
-                    { // El paréntesis contiene una suma de un ID y un valor
-                      "type": "+",
-                      "left": {
-                        "type": "ID",
-                        "value": "x"
-                      },
-                      "right": {
-                        "type": "NUM",
-                        "value": 4
-                      }
+          {
+            "type": "=",
+            "left": "x",
+            "right": {
+              "type": "NUM",
+              "value": 1
+            }
+          },
+          {
+            "type": "=",
+            "left": "y",
+            "right": {
+              "type": "NUM",
+              "value": 2
+            }
+          },
+          {
+            "type": "=",
+            "left": "z",
+            "right": {
+              "type": "*",
+              "left": {
+                "type": "COMMA",
+                "values": [
+                  {
+                    "type": "+",
+                    "left": {
+                      "type": "ID",
+                      "value": "x"
+                    },
+                    "right": {
+                      "type": "NUM",
+                      "value": 4
                     }
-                  ]
-                },
-                "right": { // ID a la derecha de la multiplicación
-                  "type": "ID",
-                  "value": "y"
-                }
+                  }
+                ]
+              },
+              "right": {
+                "type": "ID",
+                "value": "y"
               }
             }
+          }
           ],
-          "symbolTable": { // Tabla de símbolos globales. Ninguno es constante
+          "symbolTable": {
             "x": "volatile",
             "y": "volatile",
             "z": "volatile"
@@ -191,7 +193,7 @@ Algunos ejemplos del árbol sintáctico generado:
 2. Utilizando una función
 
         FUNCTION add(x, y) {
-            z = x + y;
+            RETURN x + y;
         }
 
         add(1, 3);
@@ -200,59 +202,56 @@ Algunos ejemplos del árbol sintáctico generado:
 
         {
           "result": [
-            { // Declaración de la función
-              "type": "FUNCTION",
-              "id": "add",
-              "parameters": { // Variables locales a la función
-                "x": "parameter",
-                "y": "parameter",
-                "z": "volatile"
-              },
-              "code": [ // Código de la función
-                {
-                  "type": "=",
-                  "left": "z",
+          {
+            "type": "FUNCTION",
+            "id": "add",
+            "parameters": {
+              "x": "parameter",
+              "y": "parameter"
+            },
+            "code": [
+              {
+                "type": "RETURN",
+                "value": {
+                  "type": "+",
+                  "left": {
+                    "type": "ID",
+                    "value": "x"
+                  },
                   "right": {
-                    "type": "+",
-                    "left": {
-                      "type": "ID",
-                      "value": "x"
-                    },
-                    "right": {
-                      "type": "ID",
-                      "value": "y"
-                    }
+                    "type": "ID",
+                    "value": "y"
                   }
                 }
-              ]
-            },
-            { // Llamada a la función
-              "type": "CALL",
-              "id": "add",
-              "arguments": {
-                "type": "COMMA",
-                "values": [ // Argumentos de la función
-                  {
-                    "type": "NUM",
-                    "value": 1
-                  },
-                  {
-                    "type": "NUM",
-                    "value": 3
-                  }
-                ]
               }
+            ]
+          },
+          {
+            "type": "CALL",
+            "id": "add",
+            "arguments": {
+              "type": "COMMA",
+              "values": [
+                {
+                  "type": "NUM",
+                  "value": 1
+                },
+                {
+                  "type": "NUM",
+                  "value": 3
+                }
+              ]
             }
+          }
           ],
           "symbolTable": {},
           "functionTable": {
-            "add": {
-              "local_symbol_table": {
-                "x": "parameter",
-                "y": "parameter",
-                "z": "volatile"
-              }
+          "add": {
+            "local_symbol_table": {
+              "x": "parameter",
+              "y": "parameter"
             }
+          }
           },
           "constantTable": {
             "true": 1,
@@ -262,50 +261,52 @@ Algunos ejemplos del árbol sintáctico generado:
 
 3. Utilizando una sentencia IF
 
-        IF 2 > 3 THEN
-            c = 4;
-        ELSE
-            c = 5;
-        END
+        IF 2 > 3 {
+          c = 4;
+        }
+        ELSE {
+          c = 5;
+        }
 
     Árbol resultado:
 
         {
           "result": [
-            {
-              "type": "IF",
-              "if_condition": { // Condición del IF
-                "type": ">",
-                "left": {
-                  "type": "NUM",
-                  "value": 2
-                },
+          {
+            "type": "IF",
+            "if_condition": {
+              "type": ">",
+              "left": {
+                "type": "NUM",
+                "value": 2
+              },
+              "right": {
+                "type": "NUM",
+                "value": 3
+              }
+            },
+            "if_sentences": [
+              {
+                "type": "=",
+                "left": "c",
                 "right": {
                   "type": "NUM",
-                  "value": 3
+                  "value": 4
                 }
-              },
-              "if_sentence": [ // Código si la condición se cumple
-                {
-                  "type": "=",
-                  "left": "c",
-                  "right": {
-                    "type": "NUM",
-                    "value": 4
-                  }
+              }
+            ],
+            "elseif_sentences": [],
+            "else_sentece": [
+              {
+                "type": "=",
+                "left": "c",
+                "right": {
+                  "type": "NUM",
+                  "value": 5
                 }
-              ],
-              "else_sentece": [ // Código si la condición no se cumple
-                {
-                  "type": "=",
-                  "left": "c",
-                  "right": {
-                    "type": "NUM",
-                    "value": 5
-                  }
-                }
-              ]
-            }
+              }
+            ]
+          }
           ],
           "symbolTable": {
             "c": "volatile"

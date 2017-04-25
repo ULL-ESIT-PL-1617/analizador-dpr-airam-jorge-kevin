@@ -97,7 +97,7 @@
         });
     });
     test('Condition are parsed correctly', () => {
-      var result = parse('x = 2; IF x == 5 THEN x = 0; ELSE x = 1; END');
+      var result = parse('x = 2; IF x == 5 { x = 0; } ELSE { x = 1; }');
       console.log(result);
       assert.deepEqual(result, {
           "result": [
@@ -122,7 +122,7 @@
                   "value": 5
                 }
               },
-              "if_sentence": [
+              "if_sentences": [
                 {
                   "type": "=",
                   "left": "x",
@@ -132,6 +132,7 @@
                   }
                 }
               ],
+              "elseif_sentences": [],
               "else_sentece": [
                 {
                   "type": "=",
@@ -155,18 +156,10 @@
         });
     });
     test('Loops are parsed correctly', () => {
-      var result = parse('x = 0; y = 0; LOOP (x = x + 1; x < 4) THEN y = y + 1; END');
+      var result = parse('y = 0; LOOP (x = 0; x < 4; x = x + 1) { y = y + 1; }');
       console.log(result);
       assert.deepEqual(result, {
           "result": [
-            {
-              "type": "=",
-              "left": "x",
-              "right": {
-                "type": "NUM",
-                "value": 0
-              }
-            },
             {
               "type": "=",
               "left": "y",
@@ -177,20 +170,18 @@
             },
             {
               "type": "LOOP",
-              "repeat": {
-                "type": "=",
-                "left": "x",
-                "right": {
-                  "type": "+",
-                  "left": {
-                    "type": "ID",
-                    "value": "x"
-                  },
-                  "right": {
-                    "type": "NUM",
-                    "value": 1
+              "loop_start": {
+                "type": "COMMA",
+                "values": [
+                  {
+                    "type": "=",
+                    "left": "x",
+                    "right": {
+                      "type": "NUM",
+                      "value": 0
+                    }
                   }
-                }
+                ]
               },
               "loop_condition": {
                 "type": "<",
@@ -202,6 +193,26 @@
                   "type": "NUM",
                   "value": 4
                 }
+              },
+              "loop_iteration": {
+                "type": "COMMA",
+                "values": [
+                  {
+                    "type": "=",
+                    "left": "x",
+                    "right": {
+                      "type": "+",
+                      "left": {
+                        "type": "ID",
+                        "value": "x"
+                      },
+                      "right": {
+                        "type": "NUM",
+                        "value": 1
+                      }
+                    }
+                  }
+                ]
               },
               "code": [
                 {
@@ -223,8 +234,8 @@
             }
           ],
           "symbolTable": {
-            "x": "volatile",
-            "y": "volatile"
+            "y": "volatile",
+            "x": "volatile"
           },
           "functionTable": {},
           "constantTable": {

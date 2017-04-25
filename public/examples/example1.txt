@@ -1,1 +1,8 @@
-4*2
+
+FUNCTION add(x, y) {
+  RETURN x + y;
+}
+
+z = 1;
+y = 2 * 3;
+add(z, y);

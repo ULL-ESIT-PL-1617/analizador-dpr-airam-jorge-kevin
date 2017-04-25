@@ -18,9 +18,9 @@ RESERVED_WORD = {
     "FUNCTION": "FUNCTION",
     "IF": "IF",
     "LOOP": "LOOP",
-    "THEN": "THEN",
-    "END": "END",
-    "ELSE": "ELSE"
+    "ELSE": "ELSE",
+    "EXIT": "EXIT",
+    "RETURN": "RETURN"
 };
 
 /** Tokeniza la cadena **/
@@ -125,6 +125,7 @@ var parse = function(input) {
       "false": 0
   }
 
+  var inside_statement = 0; // Indica si estamos dentro de algún tipo de sentencia.
   var symbol_table    = {}; // Tabla de símbolos, contiene los símbolos de las variables globales
   var function_table  = {}; // Contiene los ids de las funciones con sus tablas de símbolos locales
   var scope_stack     = []; // Indica el scope en el que se encuentra el analizador. Permite diferenciar las variables locales a las funciones de las globales
@@ -138,9 +139,13 @@ var parse = function(input) {
     var results = []
     while (lookahead && (!stop_conditions || (stop_conditions.indexOf(lookahead.type) === -1))) {
       if (lookahead && lookahead.type === "FUNCTION") {
+        inside_statement++;
         results.push(functions());
+        inside_statement--;
       } else if (lookahead && (lookahead.type === "LOOP" || lookahead.type === "IF")) {
+        inside_statement++;
         results.push(statements());
+        inside_statement--;
       } else if (lookahead) {
         results.push(assing());
         match(";");
@@ -158,6 +163,10 @@ var parse = function(input) {
     // Nombre de la función
     id = lookahead.value;
     match("ID");
+
+    // No se puede declarar una función dentro de ningún tipo de sentencia
+    if (inside_statement > 1)
+      throw "Cant declare function '" + id + "' in this scope.";
 
     // Evita declarar una función que ya existe
     if (!!function_table[id])
@@ -206,50 +215,66 @@ var parse = function(input) {
       return loop_statement();
   };
 
-  // loop_statement → loop '(' assing ';' condition ')' THEN sentences END
+  // loop_statement → loop '(' comma ';' condition ';' comma ')' '{' sentences '}'
   loop_statement = function () {
     match("LOOP");
     match("(");
-    repeat = assing(); // Código que se ejecutará cada vez
+    loop_start = comma(); // Código que se ejecutará antes de empezar
     match(";");
     loop_condition = condition(); // Condición de ejecución del bucle
+    match(";");
+    loop_iteration = comma(); // Código que se ejecutará en cada iteración del bucle
     match(")");
-    match("THEN");
-    code = sentences(["END"]); // Código que ejecuta el bucle
-    match("END");
+    match("{");
+    code = sentences(["}"]); // Código que ejecuta el bucle
+    match("}");
     return {
       type: "LOOP",
-      repeat: repeat,
+      loop_start: loop_start,
       loop_condition: loop_condition,
+      loop_iteration: loop_iteration,
       code: code
     }
   };
 
   // if_statement → IF condition THEN sentences (ELSE sentences)? END
   if_statement = function() {
-    var result, if_condition, if_sentence, else_sentece;
+    var result, if_condition, elseif_condition;
+    var if_sentences = {};
+    var elseif_sentences = [];
+    var else_senteces = {};
     match("IF");
     if_condition = condition(); // Condición del IF
-    match("THEN");
-    if_sentence = sentences(["ELSE", "END"]); // Código del IF
+    match("{");
+    if_sentences = sentences(["}"]); // Código del IF
+    match("}");
+
+    while (lookahead && lookahead2 && lookahead.type === "ELSE" && lookahead2.type === "IF") {
+      match("ELSE");
+      match("IF");
+      elseif_condition = condition(); // Condición del ELSE IF
+      match("{");
+      elseif_sentences.push({ // Código del ELSE IF
+        condition: elseif_condition,
+        sentences: sentences(["}"])
+      });
+      match("}");
+    }
 
     // En caso de que haya un ELSE
     if (lookahead && lookahead.type === "ELSE") {
       match("ELSE");
-      else_sentece = sentences(["END"]); // Código del ELSE
-      match("END");
-      return {
-        type: "IF",
-        if_condition: if_condition,
-        if_sentence: if_sentence,
-        else_sentece: else_sentece
-      }
+      match("{");
+      else_senteces = sentences(["}"]); // Código del ELSE
+      match("}");
     }
-    match("END");
+
     return {
       type: "IF",
-      if_condition: if_condition,
-      if_sentence: if_sentence
+      if_condition:     if_condition,
+      if_sentences:     if_sentences,
+      elseif_sentences: elseif_sentences,
+      else_sentece:     else_senteces
     }
   };
 
@@ -284,14 +309,15 @@ var parse = function(input) {
       if (type === "const" && symbolTableForScope()[id] === "parameter")
         throw "Syntax error. Cant make existing id '" + id + "' " + " constant, parameters are always volatile";
 
+      // Si la variable era un parámetro del scope actual, sigue tratándola como parámetro
       if (symbolTableForScope()[id] === "parameter")
         type = "parameter";
 
-      // Si la variable es constante y ya existe en la tabla de simbolos y es volatil, error
-      if (type === "volatile" && symbolTableForScope()[id] === "const")
-        throw "Syntax error. Cant make existing id '" + id + "' volatile";
+      // No se puede cambiar el valor a una variable const
+      if (symbolTableForScope()[id] === "const")
+        throw "Syntax error. Cant modify constant id '" + id + "'";
 
-      // Si la variable es volatil y ya existe en la tabla de simbolos y es constante, error
+      // Si la variable es declarada CONST y ya existe en la tabla de simbolos como volatil, error
       if (type === "const" && symbolTableForScope()[id] === "volatile")
         throw "Syntax error. Cant make existing id '" + id + "' constant";
 
@@ -448,6 +474,17 @@ var parse = function(input) {
     } else if (lookahead.type === "(") {
       // Para expresiones del tipo a = (1, 2, 3 * 3)
       result = arguments_();
+    } else if (lookahead.type === "EXIT") {
+      match("EXIT");
+      result = { type: "EXIT" }
+    } else if (lookahead.type === "RETURN") {
+      if (scope_stack == 0)
+        throw "Syntax Error. There is no function to return from.";
+      match("RETURN");
+      result = {
+        type: "RETURN",
+        value: (lookahead.type != ";") ? assing() : "null";
+      }
     } else {
       throw "Syntax Error. Expected number or identifier or '(' but found " + (lookahead ? lookahead.value : "end of input") + " near '" + input.substr(lookahead.from) + "'";
     }
