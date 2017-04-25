@@ -483,7 +483,7 @@ var parse = function(input) {
       match("RETURN");
       result = {
         type: "RETURN",
-        value: (lookahead.type != ";") ? assing() : "null";
+        value: (lookahead.type != ";") ? assing() : "null"
       }
     } else {
       throw "Syntax Error. Expected number or identifier or '(' but found " + (lookahead ? lookahead.value : "end of input") + " near '" + input.substr(lookahead.from) + "'";
