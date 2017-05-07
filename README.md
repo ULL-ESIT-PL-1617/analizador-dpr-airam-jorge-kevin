@@ -36,7 +36,7 @@
         2.  functions       → FUNCTION ID '(' ID? (',' ID)* ')' '{' sentences '}'
         3.  statements      → if_statement | loop_statement
 
-        4. if_statement     → IF condition '{' sentences '}' (ELSE IF '{' sentences '}' )* (ELSE '{' sentences '}')?
+        4. if_statement     → IF condition '{' sentences '}' (ELSE IF condition '{' sentences '}' )* (ELSE '{' sentences '}')?
         5. loop_statement   → LOOP '(' comma ';' condition ';' comma ')' '{' sentences '}'
 
         6.  comma           → assing (',' assing)*
